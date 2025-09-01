@@ -104,6 +104,7 @@ describe('Main Function', () => {
   let logCalls;
 
   beforeEach(() => {
+    // eslint-disable-next-line no-console
     originalLog = console.log;
     logCalls = [];
     // eslint-disable-next-line no-console

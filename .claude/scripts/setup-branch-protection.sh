@@ -78,7 +78,7 @@ setup_branch_protection() {
     local protection_config='{
         "required_status_checks": {
             "strict": true,
-            "contexts": ["CI Status Check", "build-and-test", "lint", "type-check"]
+            "contexts": ["CI Status Check", "Code Quality Checks", "Security Audit", "TypeScript Type Checking"]
         },
         "enforce_admins": true,
         "required_pull_request_reviews": {
