@@ -29,7 +29,7 @@ env:
 jobs:
   # Job 1: Lint and Code Quality Checks
   lint:
-    name: Code Quality Checks
+    name: lint
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -90,7 +90,7 @@ jobs:
 
   # Job 3: Build and Test (Matrix Strategy)
   build-and-test:
-    name: Build & Test (Node ${{ matrix.node-version }} on ${{ matrix.os }})
+    name: build-and-test
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
 
@@ -213,7 +213,7 @@ jobs:
 
   # Job 5: Type Checking (TypeScript projects)
   type-check:
-    name: TypeScript Type Checking
+    name: type-check
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
