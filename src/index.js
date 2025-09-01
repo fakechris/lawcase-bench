@@ -62,11 +62,14 @@ export class Calculator {
 export function main() {
   const calc = new Calculator();
 
+  // eslint-disable-next-line no-console
   console.log('Calculator Demo');
+  // eslint-disable-next-line no-console
   console.log('===============');
 
   const result = calc.add(10).multiply(2).subtract(5).divide(3).getResult();
 
+  // eslint-disable-next-line no-console
   console.log(`Result: ${result}`);
 
   return result;
