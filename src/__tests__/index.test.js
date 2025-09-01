@@ -104,14 +104,17 @@ describe('Main Function', () => {
   let logCalls;
 
   beforeEach(() => {
+    // eslint-disable-next-line no-console
     originalLog = console.log;
     logCalls = [];
+    // eslint-disable-next-line no-console
     console.log = (...args) => {
       logCalls.push(args);
     };
   });
 
   afterEach(() => {
+    // eslint-disable-next-line no-console
     console.log = originalLog;
   });
 

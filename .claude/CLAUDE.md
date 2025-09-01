@@ -22,6 +22,27 @@ Using the test-runner agent ensures:
 - All issues are properly surfaced
 - No approval dialogs interrupt the workflow
 
+### 4. Always use the security-auditor sub-agent for security-related tasks.
+
+The security-auditor agent specializes in security vulnerability assessment and OWASP compliance validation. Use this agent proactively when:
+
+- **Code security analysis**: Reviewing code for security vulnerabilities
+- **Vulnerability scanning**: Identifying potential security risks
+- **OWASP compliance**: Checking adherence to OWASP Top 10 standards
+- **Dependency audits**: Analyzing third-party package security
+- **Security reviews**: Conducting comprehensive security assessments
+- **Threat modeling**: Evaluating potential attack vectors
+- **Security implementation**: Adding security features or fixes
+- **Compliance validation**: Ensuring regulatory security requirements
+
+The security-auditor provides:
+
+- OWASP Top 10 2021 compliance validation
+- Node.js/TypeScript specific security analysis
+- Dependency vulnerability assessment
+- Security architecture review
+- Detailed findings with severity ratings and remediation steps
+
 ## Philosophy
 
 ### Error Handling

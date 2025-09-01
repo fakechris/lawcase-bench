@@ -37,9 +37,9 @@ This guide will help you configure GitHub branch protection rules to ensure all 
 
 3. **Search and select required status checks:**
 
-   > ⚠️ **Important**: Search for **job names**, not workflow names!
+   > ⚠️ **Important**: Search for the actual status check names created by your CI workflow
 
-   Add these status checks:
+   For this project, add these status checks (based on our CI configuration):
    - `CI Status Check` - Main status check that depends on all others
    - `build-and-test` - Ensures build and tests pass
    - `lint` - Code quality checks
@@ -74,8 +74,17 @@ This guide will help you configure GitHub branch protection rules to ensure all 
 3. **☑️ Include administrators**
    - Apply rules to admins too (recommended for production)
 
-4. **☑️ Restrict who can push to matching branches**
+4. **☑️ Restrict pushes that create matching branches**
+   - Control who can create branches matching this pattern
+
+5. **☑️ Restrict who can push to matching branches**
    - Limit direct pushes to specific users/teams
+
+6. **☑️ Require linear history** (Optional)
+   - Prevent merge commits, require rebase workflow
+
+7. **☑️ Require merge queue** (Optional)
+   - Automatically manage merging with additional validation
 
 #### Optional Settings ⚙️
 
