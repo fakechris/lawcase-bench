@@ -82,7 +82,7 @@ jobs:
 
       - name: 📤 Upload audit report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-audit-report
           path: audit-report.json
@@ -127,15 +127,17 @@ jobs:
       - name: 🧪 Run unit tests
         run: npm test --if-present
         env:
-          NODE_OPTIONS: --max-old-space-size=4096
+          NODE_OPTIONS: --experimental-vm-modules --max-old-space-size=4096
 
       - name: 📊 Generate test coverage
         run: npm run test:coverage --if-present || npm test --if-present
         continue-on-error: true
+        env:
+          NODE_OPTIONS: --experimental-vm-modules
 
       - name: 📤 Upload coverage reports
         if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           file: ./coverage/lcov.info
           flags: unittests
@@ -147,7 +149,7 @@ jobs:
 
       - name: 📦 Upload build artifacts
         if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
           path: |
@@ -207,6 +209,7 @@ jobs:
       - name: 🧪 Run integration tests
         run: npm run test:integration --if-present || npm test --if-present
         env:
+          NODE_OPTIONS: --experimental-vm-modules
           DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
           REDIS_URL: redis://localhost:6379
 
