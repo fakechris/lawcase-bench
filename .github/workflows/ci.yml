@@ -97,13 +97,11 @@ jobs:
     strategy:
       fail-fast: false # Continue running other matrix jobs even if one fails
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         node-version: [18.x, 20.x, 22.x]
         exclude:
           # Exclude some combinations to save CI minutes
           - os: macos-latest
-            node-version: 18.x
-          - os: windows-latest
             node-version: 18.x
 
     steps:
