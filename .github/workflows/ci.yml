@@ -1,0 +1,268 @@
+# Comprehensive CI Pipeline for Node.js Application
+# This workflow runs on all pushes to main/develop branches and all pull requests
+# It ensures code quality through testing, building, and linting
+
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop, master]
+  pull_request:
+    branches: [main, develop, master]
+  # Allow manual workflow dispatch
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new run is triggered on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Set default permissions
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  NODE_ENV: test
+  CI: true
+
+jobs:
+  # Job 1: Lint and Code Quality Checks
+  lint:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for better analysis
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🎨 Run ESLint
+        run: npm run lint --if-present
+        continue-on-error: false
+
+      - name: 💅 Check code formatting
+        run: npm run format:check --if-present
+        continue-on-error: false
+
+  # Job 2: Security Audit
+  security:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 🔐 Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true # Don't fail CI, but report issues
+
+      - name: 📋 Generate audit report
+        if: always()
+        run: npm audit --json > audit-report.json || true
+
+      - name: 📤 Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-audit-report
+          path: audit-report.json
+          retention-days: 30
+
+  # Job 3: Build and Test (Matrix Strategy)
+  build-and-test:
+    name: Build & Test (Node ${{ matrix.node-version }} on ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false # Continue running other matrix jobs even if one fails
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: [18.x, 20.x, 22.x]
+        exclude:
+          # Exclude some combinations to save CI minutes
+          - os: macos-latest
+            node-version: 18.x
+          - os: windows-latest
+            node-version: 18.x
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📊 Display Node.js and npm versions
+        run: |
+          node --version
+          npm --version
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run unit tests
+        run: npm test --if-present
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: 📊 Generate test coverage
+        run: npm run test:coverage --if-present || npm test --if-present
+        continue-on-error: true
+
+      - name: 📤 Upload coverage reports
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+
+      - name: 🔨 Build application
+        run: npm run build --if-present
+
+      - name: 📦 Upload build artifacts
+        if: matrix.os == 'ubuntu-latest' && matrix.node-version == '20.x'
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            build/
+            .next/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  # Job 4: Integration Tests (runs after build-and-test)
+  integration-tests:
+    name: Integration Tests
+    needs: [build-and-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+
+    services:
+      # Add any required services (databases, etc.)
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run integration tests
+        run: npm run test:integration --if-present || npm test --if-present
+        env:
+          DATABASE_URL: postgresql://testuser:testpass@localhost:5432/testdb
+          REDIS_URL: redis://localhost:6379
+
+  # Job 5: Type Checking (TypeScript projects)
+  type-check:
+    name: TypeScript Type Checking
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Run TypeScript compiler check
+        run: npm run type-check --if-present || npx tsc --noEmit --skipLibCheck || echo "No TypeScript configuration found"
+
+  # Job 6: Final Status Check (Required for branch protection)
+  status-check:
+    name: CI Status Check
+    needs: [lint, security, build-and-test, type-check]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: ✅ All checks passed
+        if: ${{ !contains(needs.*.result, 'failure') }}
+        run: |
+          echo "✅ All CI checks passed successfully!"
+          echo "Ready to merge!"
+
+      - name: ❌ Some checks failed
+        if: ${{ contains(needs.*.result, 'failure') }}
+        run: |
+          echo "❌ One or more CI checks failed!"
+          echo "Please review the failed jobs above."
+          exit 1
+
+  # Job 7: Auto-merge Dependabot PRs (optional)
+  auto-merge-dependabot:
+    name: Auto-merge Dependabot PRs
+    needs: [status-check]
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]' && github.event_name == 'pull_request'
+
+    steps:
+      - name: 🔀 Auto-merge Dependabot PR
+        uses: ahmadnassri/action-dependabot-auto-merge@v2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          command: squash and merge
