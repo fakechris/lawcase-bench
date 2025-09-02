@@ -95,7 +95,7 @@ export class AuthService {
     await this.sendVerificationEmail(user);
 
     // Return user without sensitive data
-    const { password: _password, twoFactorSecret: _twoFactorSecret, ...userResponse } = user;
+    const { password: __password, twoFactorSecret: __twoFactorSecret, ...userResponse } = user;
 
     return {
       user: userResponse,
@@ -162,7 +162,7 @@ export class AuthService {
     await UserModel.updateLastLogin(user.id);
 
     // Return user without sensitive data
-    const { password: _password, twoFactorSecret: _twoFactorSecret, ...userResponse } = user;
+    const { password: __password, twoFactorSecret: __twoFactorSecret, ...userResponse } = user;
 
     return {
       user: userResponse,
@@ -214,7 +214,7 @@ export class AuthService {
     });
 
     // Return user without sensitive data
-    const { password: _password, twoFactorSecret: _twoFactorSecret, ...userResponse } = user;
+    const { password: __password, twoFactorSecret: __twoFactorSecret, ...userResponse } = user;
 
     return {
       user: userResponse,

@@ -1,0 +1,8 @@
+{
+  "extends": ["../../.eslintrc.json"],
+  "parserOptions": {
+    "project": "./tsconfig.json",
+    "tsconfigRootDir": "."
+  },
+  "ignorePatterns": ["dist/", "node_modules/", "coverage/", "prisma/", "tests/"]
+}

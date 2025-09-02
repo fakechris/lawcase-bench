@@ -1,6 +1,4 @@
 import type { Config } from 'jest';
-import { pathsToModuleNameMapper } from 'ts-jest';
-import { compilerOptions } from './tsconfig.json';
 
 const config: Config = {
   preset: 'ts-jest',
@@ -10,7 +8,7 @@ const config: Config = {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@prisma/client$': '<rootDir>/node_modules/@prisma/client',
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
