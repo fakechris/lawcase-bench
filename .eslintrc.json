@@ -10,7 +10,8 @@
   "parserOptions": {
     "ecmaVersion": 2022,
     "sourceType": "module",
-    "project": "./tsconfig.json"
+    "project": "./tsconfig.json",
+    "tsconfigRootDir": "."
   },
   "plugins": ["@typescript-eslint", "jest", "prettier", "import"],
   "env": {
@@ -44,5 +45,21 @@
       }
     ]
   },
-  "ignorePatterns": ["dist/", "build/", "coverage/", "node_modules/", "*.config.js", "*.setup.js"]
+  "ignorePatterns": [
+    "dist/",
+    "build/",
+    "coverage/",
+    "node_modules/",
+    ".next/",
+    "*.config.js",
+    "*.setup.js"
+  ],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "alwaysTryTypes": true,
+        "project": "./tsconfig.json"
+      }
+    }
+  }
 }
