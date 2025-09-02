@@ -52,7 +52,10 @@
     "node_modules/",
     ".next/",
     "*.config.js",
-    "*.setup.js"
+    "*.setup.js",
+    "packages/shared/jest.config.ts",
+    "packages/shared/prisma/seed.ts",
+    "packages/shared/tests/"
   ],
   "settings": {
     "import/resolver": {
