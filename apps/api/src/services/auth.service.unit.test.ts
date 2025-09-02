@@ -1,32 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
 import { AuthService } from '../services/auth.service.js';
 import { JwtUtils, PasswordUtils } from '../utils/jwt.js';
-import { UserModel, RoleModel } from '../models/auth.js';
-
-// Mock the database models
-vi.mock('../models/auth.js', () => ({
-  UserModel: {
-    findByEmail: vi.fn(),
-    create: vi.fn(),
-    updateLastLogin: vi.fn(),
-  },
-  RoleModel: {
-    findByName: vi.fn(),
-  },
-  RefreshTokenModel: {
-    create: vi.fn(),
-  },
-  TokenBlacklistModel: {
-    create: vi.fn(),
-  },
-}));
-
-// Mock the email service
-vi.mock('nodemailer', () => ({
-  createTransporter: vi.fn(() => ({
-    sendMail: vi.fn().mockResolvedValue(true),
-  })),
-}));
+import { UserModel, RoleModel, RefreshTokenModel } from '../models/auth.js';
 
 describe('AuthService', () => {
   beforeEach(() => {
@@ -89,7 +65,9 @@ describe('AuthService', () => {
 
       UserModel.findByEmail.mockResolvedValue({ id: '1' });
 
-      await expect(AuthService.register(mockUserData)).rejects.toThrow('User with this email already exists');
+      await expect(AuthService.register(mockUserData)).rejects.toThrow(
+        'User with this email already exists'
+      );
     });
 
     it('should validate password requirements', async () => {
@@ -101,7 +79,9 @@ describe('AuthService', () => {
         lastName: 'User',
       };
 
-      await expect(AuthService.register(mockUserData)).rejects.toThrow('Password validation failed');
+      await expect(AuthService.register(mockUserData)).rejects.toThrow(
+        'Password validation failed'
+      );
     });
   });
 
@@ -173,7 +153,9 @@ describe('AuthService', () => {
       UserModel.findByEmail.mockResolvedValue(mockUser);
       PasswordUtils.comparePassword.mockResolvedValue(true);
 
-      await expect(AuthService.login(mockLoginData)).rejects.toThrow('Two-factor authentication code required');
+      await expect(AuthService.login(mockLoginData)).rejects.toThrow(
+        'Two-factor authentication code required'
+      );
     });
   });
 });

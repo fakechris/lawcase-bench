@@ -1,5 +1,6 @@
-import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
+import speakeasy from 'speakeasy';
+
 import { TwoFactorSetupResponse } from '../types/auth.js';
 
 export class TwoFactorUtils {
@@ -55,6 +56,6 @@ export class TwoFactorUtils {
   }
 
   static removeUsedBackupCode(backupCodes: string[], code: string): string[] {
-    return backupCodes.filter(bc => bc !== code);
+    return backupCodes.filter((bc) => bc !== code);
   }
 }

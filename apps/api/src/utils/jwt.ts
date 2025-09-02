@@ -1,11 +1,14 @@
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+
 import { JwtPayload } from '../types/auth.js';
 
 export class JwtUtils {
-  private static readonly ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_SECRET || 'your-access-secret';
-  private static readonly REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secret';
+  private static readonly ACCESS_TOKEN_SECRET =
+    process.env.JWT_ACCESS_SECRET || 'your-access-secret';
+  private static readonly REFRESH_TOKEN_SECRET =
+    process.env.JWT_REFRESH_SECRET || 'your-refresh-secret';
   private static readonly ACCESS_TOKEN_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN || '15m';
   private static readonly REFRESH_TOKEN_EXPIRES_IN = process.env.JWT_REFRESH_EXPIRES_IN || '7d';
 
@@ -40,7 +43,7 @@ export class JwtUtils {
       return jwt.verify(token, this.ACCESS_TOKEN_SECRET, {
         algorithms: ['HS256'],
       }) as JwtPayload;
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Invalid access token');
     }
   }
@@ -50,7 +53,7 @@ export class JwtUtils {
       return jwt.verify(token, this.REFRESH_TOKEN_SECRET, {
         algorithms: ['HS256'],
       }) as JwtPayload;
-    } catch (error) {
+    } catch (_error) {
       throw new Error('Invalid refresh token');
     }
   }
@@ -58,7 +61,7 @@ export class JwtUtils {
   static decodeToken(token: string): JwtPayload | null {
     try {
       return jwt.decode(token) as JwtPayload;
-    } catch (error) {
+    } catch (_error) {
       return null;
     }
   }
@@ -129,7 +132,7 @@ export class TokenUtils {
     return result;
   }
 
-  static isTokenBlacklisted(token: string): boolean {
+  static isTokenBlacklisted(_token: string): boolean {
     // This would typically check against a database or Redis
     // For now, we'll implement a simple in-memory check
     // In production, this should be replaced with a proper blacklist mechanism

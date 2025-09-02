@@ -1,21 +1,22 @@
 import { Request, Response } from 'express';
+
+import { AuthenticatedRequest } from '../middleware/auth.js';
 import { AuthService } from '../services/auth.service.js';
-import { 
-  LoginRequest, 
-  RegisterRequest, 
+import {
+  LoginRequest,
+  RegisterRequest,
   RefreshTokenRequest,
   TwoFactorEnableRequest,
   PasswordResetRequest,
-  PasswordResetConfirmRequest
+  PasswordResetConfirmRequest,
 } from '../types/auth.js';
-import { AuthenticatedRequest } from '../middleware/auth.js';
 
 export class AuthController {
   static async register(req: Request, res: Response): Promise<void> {
     try {
       const data: RegisterRequest = req.body;
       const result = await AuthService.register(data);
-      
+
       res.status(201).json({
         success: true,
         data: result,
@@ -33,7 +34,7 @@ export class AuthController {
     try {
       const data: LoginRequest = req.body;
       const result = await AuthService.login(data);
-      
+
       res.status(200).json({
         success: true,
         data: result,
@@ -51,7 +52,7 @@ export class AuthController {
     try {
       const data: RefreshTokenRequest = req.body;
       const result = await AuthService.refreshToken(data);
-      
+
       res.status(200).json({
         success: true,
         data: result,
@@ -80,7 +81,7 @@ export class AuthController {
       }
 
       await AuthService.logout(accessToken, refreshToken);
-      
+
       res.status(200).json({
         success: true,
         message: 'Logout successful',
@@ -136,7 +137,7 @@ export class AuthController {
       }
 
       const result = await AuthService.setupTwoFactor(req.user.id, password);
-      
+
       res.status(200).json({
         success: true,
         data: result,
@@ -161,8 +162,8 @@ export class AuthController {
       }
 
       const data: TwoFactorEnableRequest = req.body;
-      const result = await AuthService.enableTwoFactor(req.user.id, data);
-      
+      await AuthService.enableTwoFactor(req.user.id, data);
+
       res.status(200).json({
         success: true,
         message: 'Two-factor authentication enabled successfully',
@@ -170,7 +171,8 @@ export class AuthController {
     } catch (error) {
       res.status(400).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to enable two-factor authentication',
+        error:
+          error instanceof Error ? error.message : 'Failed to enable two-factor authentication',
       });
     }
   }
@@ -195,7 +197,7 @@ export class AuthController {
       }
 
       await AuthService.disableTwoFactor(req.user.id, password);
-      
+
       res.status(200).json({
         success: true,
         message: 'Two-factor authentication disabled successfully',
@@ -203,7 +205,8 @@ export class AuthController {
     } catch (error) {
       res.status(400).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to disable two-factor authentication',
+        error:
+          error instanceof Error ? error.message : 'Failed to disable two-factor authentication',
       });
     }
   }
@@ -212,7 +215,7 @@ export class AuthController {
     try {
       const data: PasswordResetRequest = req.body;
       await AuthService.requestPasswordReset(data);
-      
+
       res.status(200).json({
         success: true,
         message: 'If this email exists, a reset link will be sent',
@@ -229,7 +232,7 @@ export class AuthController {
     try {
       const data: PasswordResetConfirmRequest = req.body;
       await AuthService.confirmPasswordReset(data);
-      
+
       res.status(200).json({
         success: true,
         message: 'Password reset successfully',
@@ -253,7 +256,7 @@ export class AuthController {
       }
 
       const { currentPassword, newPassword, confirmPassword } = req.body;
-      
+
       if (!currentPassword || !newPassword || !confirmPassword) {
         res.status(400).json({
           success: false,
@@ -271,7 +274,6 @@ export class AuthController {
       }
 
       // Import here to avoid circular dependency
-      const { AuthService } = await import('../services/auth.service.js');
       const { PasswordUtils } = await import('../utils/jwt.js');
       const { UserModel } = await import('../models/auth.js');
 
@@ -284,7 +286,10 @@ export class AuthController {
         return;
       }
 
-      const isCurrentPasswordValid = await PasswordUtils.comparePassword(currentPassword, user.password);
+      const isCurrentPasswordValid = await PasswordUtils.comparePassword(
+        currentPassword,
+        user.password
+      );
       if (!isCurrentPasswordValid) {
         res.status(400).json({
           success: false,

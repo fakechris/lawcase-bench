@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+
 import { User, Role, Permission, RefreshToken, TokenBlacklist } from '../types/auth.js';
 
 const prisma = new PrismaClient();
@@ -24,10 +25,12 @@ export class UserModel {
 
     return {
       ...user,
-      role: user.role ? {
-        ...user.role,
-        permissions: user.role.rolePermissions.map(rp => rp.permission),
-      } : undefined,
+      role: user.role
+        ? {
+            ...user.role,
+            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+          }
+        : undefined,
     } as User;
   }
 
@@ -51,10 +54,12 @@ export class UserModel {
 
     return {
       ...user,
-      role: user.role ? {
-        ...user.role,
-        permissions: user.role.rolePermissions.map(rp => rp.permission),
-      } : undefined,
+      role: user.role
+        ? {
+            ...user.role,
+            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+          }
+        : undefined,
     } as User;
   }
 
@@ -78,10 +83,12 @@ export class UserModel {
 
     return {
       ...user,
-      role: user.role ? {
-        ...user.role,
-        permissions: user.role.rolePermissions.map(rp => rp.permission),
-      } : undefined,
+      role: user.role
+        ? {
+            ...user.role,
+            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+          }
+        : undefined,
     } as User;
   }
 
@@ -103,10 +110,12 @@ export class UserModel {
 
     return {
       ...user,
-      role: user.role ? {
-        ...user.role,
-        permissions: user.role.rolePermissions.map(rp => rp.permission),
-      } : undefined,
+      role: user.role
+        ? {
+            ...user.role,
+            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+          }
+        : undefined,
     } as User;
   }
 
@@ -129,10 +138,12 @@ export class UserModel {
 
     return {
       ...user,
-      role: user.role ? {
-        ...user.role,
-        permissions: user.role.rolePermissions.map(rp => rp.permission),
-      } : undefined,
+      role: user.role
+        ? {
+            ...user.role,
+            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+          }
+        : undefined,
     } as User;
   }
 
@@ -167,7 +178,7 @@ export class RoleModel {
 
     return {
       ...role,
-      permissions: role.rolePermissions.map(rp => rp.permission),
+      permissions: role.rolePermissions.map((rp) => rp.permission),
     } as Role;
   }
 
@@ -187,7 +198,7 @@ export class RoleModel {
 
     return {
       ...role,
-      permissions: role.rolePermissions.map(rp => rp.permission),
+      permissions: role.rolePermissions.map((rp) => rp.permission),
     } as Role;
   }
 
@@ -202,9 +213,9 @@ export class RoleModel {
       },
     });
 
-    return roles.map(role => ({
+    return roles.map((role) => ({
       ...role,
-      permissions: role.rolePermissions.map(rp => rp.permission),
+      permissions: role.rolePermissions.map((rp) => rp.permission),
     })) as Role[];
   }
 
@@ -222,7 +233,7 @@ export class RoleModel {
 
     return {
       ...role,
-      permissions: role.rolePermissions.map(rp => rp.permission),
+      permissions: role.rolePermissions.map((rp) => rp.permission),
     } as Role;
   }
 }
@@ -244,7 +255,9 @@ export class PermissionModel {
     return prisma.permission.findMany();
   }
 
-  static async create(data: Omit<Permission, 'id' | 'createdAt' | 'updatedAt'>): Promise<Permission> {
+  static async create(
+    data: Omit<Permission, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<Permission> {
     return prisma.permission.create({
       data,
     });

@@ -1,29 +1,37 @@
+import nodemailer from 'nodemailer';
+
 import { UserModel, RoleModel, RefreshTokenModel, TokenBlacklistModel } from '../models/auth.js';
-import { JwtUtils, PasswordUtils, TokenUtils } from '../utils/jwt.js';
-import { TwoFactorUtils } from '../utils/twoFactor.js';
-import { 
-  User, 
-  LoginRequest, 
-  RegisterRequest, 
-  RefreshTokenRequest, 
+import {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  RefreshTokenRequest,
   AuthResponse,
   TwoFactorSetupResponse,
   TwoFactorEnableRequest,
   PasswordResetRequest,
-  PasswordResetConfirmRequest
+  PasswordResetConfirmRequest,
 } from '../types/auth.js';
-import nodemailer from 'nodemailer';
+import { JwtUtils, PasswordUtils, TokenUtils } from '../utils/jwt.js';
+import { TwoFactorUtils } from '../utils/twoFactor.js';
 
 export class AuthService {
-  private static emailTransporter = nodemailer.createTransporter({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  private static emailTransporter: nodemailer.Transporter | null = null;
+
+  private static getEmailTransporter(): nodemailer.Transporter {
+    if (!this.emailTransporter) {
+      this.emailTransporter = nodemailer.createTransporter({
+        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false,
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+    }
+    return this.emailTransporter;
+  }
 
   static async register(data: RegisterRequest): Promise<AuthResponse> {
     // Validate password
@@ -87,7 +95,7 @@ export class AuthService {
     await this.sendVerificationEmail(user);
 
     // Return user without sensitive data
-    const { password, twoFactorSecret, ...userResponse } = user;
+    const { password: _password, twoFactorSecret: _twoFactorSecret, ...userResponse } = user;
 
     return {
       user: userResponse,
@@ -154,7 +162,7 @@ export class AuthService {
     await UserModel.updateLastLogin(user.id);
 
     // Return user without sensitive data
-    const { password, twoFactorSecret, ...userResponse } = user;
+    const { password: _password, twoFactorSecret: _twoFactorSecret, ...userResponse } = user;
 
     return {
       user: userResponse,
@@ -206,7 +214,7 @@ export class AuthService {
     });
 
     // Return user without sensitive data
-    const { password, twoFactorSecret, ...userResponse } = user;
+    const { password: _password, twoFactorSecret: _twoFactorSecret, ...userResponse } = user;
 
     return {
       user: userResponse,
@@ -356,7 +364,7 @@ export class AuthService {
     };
 
     try {
-      await this.emailTransporter.sendMail(mailOptions);
+      await this.getEmailTransporter().sendMail(mailOptions);
     } catch (error) {
       console.error('Error sending verification email:', error);
     }
@@ -380,7 +388,7 @@ export class AuthService {
     };
 
     try {
-      await this.emailTransporter.sendMail(mailOptions);
+      await this.getEmailTransporter().sendMail(mailOptions);
     } catch (error) {
       console.error('Error sending password reset email:', error);
     }

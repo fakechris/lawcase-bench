@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { JwtUtils, TokenUtils } from '../utils/jwt.js';
+
 import { UserModel, TokenBlacklistModel } from '../models/auth.js';
-import { JwtPayload } from '../types/auth.js';
+import { JwtUtils } from '../utils/jwt.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -13,7 +13,11 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export class AuthMiddleware {
-  static async authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  static async authenticate(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     try {
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -32,7 +36,7 @@ export class AuthMiddleware {
 
       // Verify token
       const decoded = JwtUtils.verifyAccessToken(token);
-      
+
       // Check if token is access token
       if (decoded.type !== 'access') {
         res.status(401).json({ error: 'Invalid token type' });
@@ -75,7 +79,7 @@ export class AuthMiddleware {
         }
 
         // Check if user has the required permission
-        const hasPermission = user.role?.permissions.some(p => p.name === permission);
+        const hasPermission = user.role?.permissions.some((p) => p.name === permission);
         if (!hasPermission) {
           res.status(403).json({ error: 'Insufficient permissions' });
           return;
@@ -148,7 +152,7 @@ export class AuthMiddleware {
     }
 
     const token = authHeader.substring(7);
-    
+
     JwtUtils.verifyAccessToken(token)
       .then(async (decoded) => {
         if (decoded.type === 'access') {
