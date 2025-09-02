@@ -7,6 +7,7 @@
 ## 技术特性
 
 ### 🔐 认证功能
+
 - **用户注册/登录/登出**
 - **JWT + Refresh Token机制**
   - Access Token: 15分钟有效期
@@ -22,6 +23,7 @@
   - 密码重置流程
 
 ### 👥 角色权限系统
+
 - **预定义角色**
   - Admin: 系统管理员
   - Manager: 办公室经理
@@ -37,6 +39,7 @@
 ## API端点
 
 ### 公开端点
+
 ```bash
 POST /api/auth/register          # 用户注册
 POST /api/auth/login             # 用户登录
@@ -46,6 +49,7 @@ POST /api/auth/password/reset-confirm   # 确认密码重置
 ```
 
 ### 认证端点
+
 ```bash
 POST /api/auth/logout            # 用户登出
 GET  /api/auth/profile           # 获取用户信息
@@ -58,12 +62,14 @@ POST /api/auth/2fa/disable       # 禁用2FA
 ## 快速开始
 
 ### 1. 环境配置
+
 ```bash
 cp .env.example .env
 # 编辑 .env 文件，配置数据库和邮件设置
 ```
 
 ### 2. 数据库设置
+
 ```bash
 # 生成Prisma客户端
 npm run db:generate
@@ -79,6 +85,7 @@ npm run db:setup
 ```
 
 ### 3. 启动服务
+
 ```bash
 # 开发模式
 npm run dev
@@ -91,6 +98,7 @@ npm start
 ## 使用示例
 
 ### 用户注册
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/register \
   -H "Content-Type: application/json" \
@@ -104,6 +112,7 @@ curl -X POST http://localhost:3001/api/auth/register \
 ```
 
 ### 用户登录
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/login \
   -H "Content-Type: application/json" \
@@ -114,6 +123,7 @@ curl -X POST http://localhost:3001/api/auth/login \
 ```
 
 ### 刷新令牌
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/refresh \
   -H "Content-Type: application/json" \
@@ -123,6 +133,7 @@ curl -X POST http://localhost:3001/api/auth/refresh \
 ```
 
 ### 设置2FA
+
 ```bash
 curl -X POST http://localhost:3001/api/auth/2fa/setup \
   -H "Authorization: Bearer your-access-token" \
@@ -135,6 +146,7 @@ curl -X POST http://localhost:3001/api/auth/2fa/setup \
 ## 中间件使用
 
 ### 认证中间件
+
 ```typescript
 import { AuthMiddleware } from '../middleware/auth.js';
 
@@ -145,9 +157,11 @@ router.get('/protected', AuthMiddleware.authenticate, (req, res) => {
 ```
 
 ### 权限中间件
+
 ```typescript
 // 需要特定权限
-router.get('/admin', 
+router.get(
+  '/admin',
   AuthMiddleware.authenticate,
   AuthMiddleware.authorize('system:admin'),
   (req, res) => {
@@ -156,7 +170,8 @@ router.get('/admin',
 );
 
 // 需要特定角色
-router.get('/manager', 
+router.get(
+  '/manager',
   AuthMiddleware.authenticate,
   AuthMiddleware.requireRole('Manager'),
   (req, res) => {
@@ -165,7 +180,8 @@ router.get('/manager',
 );
 
 // 需要任一角色
-router.get('/staff', 
+router.get(
+  '/staff',
   AuthMiddleware.authenticate,
   AuthMiddleware.requireAnyRole(['Lawyer', 'Sales', 'Finance']),
   (req, res) => {
@@ -177,21 +193,25 @@ router.get('/staff',
 ## 安全特性
 
 ### 密码安全
+
 - 最小8位，最大128位
 - 必须包含大小写字母、数字、特殊字符
 - bcrypt加密（12轮salt）
 
 ### JWT安全
+
 - HS256算法
 - Token黑名单机制
 - 自动过期处理
 
 ### 2FA安全
+
 - TOTP算法
 - 30秒时间窗口
 - 备用码支持
 
 ### 请求安全
+
 - Helmet安全头
 - CORS配置
 - 输入验证
@@ -200,6 +220,7 @@ router.get('/staff',
 ## 数据库模型
 
 ### 用户表 (users)
+
 ```sql
 - id: UUID (主键)
 - email: VARCHAR (唯一)
@@ -219,6 +240,7 @@ router.get('/staff',
 ```
 
 ### 角色表 (roles)
+
 ```sql
 - id: UUID (主键)
 - name: VARCHAR (唯一)
@@ -228,6 +250,7 @@ router.get('/staff',
 ```
 
 ### 权限表 (permissions)
+
 ```sql
 - id: UUID (主键)
 - name: VARCHAR (唯一)
@@ -241,6 +264,7 @@ router.get('/staff',
 ## 测试
 
 运行测试：
+
 ```bash
 # 运行所有测试
 npm test
@@ -258,6 +282,7 @@ npm run test:coverage
 ## 部署注意事项
 
 ### 环境变量
+
 ```env
 # 数据库
 DATABASE_URL=postgresql://user:password@localhost:5432/dbname
@@ -274,6 +299,7 @@ SMTP_PASS=your-app-password
 ```
 
 ### 安全建议
+
 1. 使用强密码和JWT密钥
 2. 配置HTTPS
 3. 启用CORS限制
@@ -284,12 +310,14 @@ SMTP_PASS=your-app-password
 ## 故障排除
 
 ### 常见问题
+
 1. **数据库连接失败**: 检查DATABASE_URL配置
 2. **JWT验证失败**: 检查JWT密钥配置
 3. **邮件发送失败**: 检查SMTP配置
 4. **2FA验证失败**: 检查系统时间同步
 
 ### 日志查看
+
 ```bash
 # 查看应用日志
 npm run dev
