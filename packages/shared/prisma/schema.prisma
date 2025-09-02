@@ -1,0 +1,572 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums for status fields
+enum UserRole {
+  ADMIN
+  LAWYER
+  ASSISTANT
+  ACCOUNTANT
+  MANAGER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  PROPOSAL_SENT
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  WEBSITE
+  REFERRAL
+  SOCIAL_MEDIA
+  ADVERTISEMENT
+  EVENT
+  PHONE
+  EMAIL
+  OTHER
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  BLACKLISTED
+}
+
+enum CustomerType {
+  INDIVIDUAL
+  COMPANY
+  GOVERNMENT
+  ORGANIZATION
+}
+
+enum CaseStatus {
+  OPEN
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+  SETTLED
+}
+
+enum CaseType {
+  CIVIL
+  CRIMINAL
+  FAMILY
+  CORPORATE
+  REAL_ESTATE
+  IMMIGRATION
+  TAX
+  LABOR
+  INTELLECTUAL_PROPERTY
+  OTHER
+}
+
+enum CasePriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  ACTIVE
+  EXPIRED
+  TERMINATED
+  CANCELLED
+}
+
+enum ContractType {
+  RETAINER
+  CONTINGENCY
+  FIXED_FEE
+  HOURLY
+  SUBSCRIPTION
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIAL
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  BANK_TRANSFER
+  CHECK
+  ONLINE_PAYMENT
+  OTHER
+}
+
+enum RefundStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  PROCESSED
+  CANCELLED
+}
+
+enum DocumentType {
+  CONTRACT
+  COURT_FILING
+  EVIDENCE
+  CORRESPONDENCE
+  INVOICE
+  RECEIPT
+  REPORT
+  OTHER
+}
+
+enum DocumentStatus {
+  DRAFT
+  FINAL
+  SIGNED
+  ARCHIVED
+  DELETED
+}
+
+enum CommunicationType {
+  PHONE
+  EMAIL
+  MEETING
+  VIDEO_CALL
+  LETTER
+  SMS
+  OTHER
+}
+
+enum CommunicationStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+// Permission model
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  // Relationships
+  role_permissions RolePermission[]
+
+  @@map("permissions")
+}
+
+// Role model
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  deleted_at  DateTime?
+
+  // Relationships
+  user_roles        User_Role[]
+  role_permissions RolePermission[]
+
+  @@map("roles")
+}
+
+// Role-Permission junction table
+model RolePermission {
+  role_id      String
+  permission_id String
+  
+  role         Role       @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permission_id], references: [id], onDelete: Cascade)
+
+  @@id([role_id, permission_id])
+  @@map("role_permissions")
+}
+
+// User-Role junction table
+model User_Role {
+  user_id String
+  role_id String
+  
+  user    User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  role    Role    @relation(fields: [role_id], references: [id], onDelete: Cascade)
+
+  @@id([user_id, role_id])
+  @@map("user_roles")
+}
+
+// User model
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  username      String?    @unique
+  password_hash String
+  first_name    String
+  last_name     String
+  phone         String?
+  avatar_url    String?
+  status        UserStatus @default(PENDING)
+  last_login_at DateTime?
+  email_verified Boolean    @default(false)
+  created_at    DateTime   @default(now())
+  updated_at    DateTime   @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  user_roles         User_Role[]
+  assigned_leads     Lead[]       @relation("LeadAssignee")
+  created_leads      Lead[]       @relation("LeadCreator")
+  assigned_cases     Case[]       @relation("CaseAssignee")
+  created_cases      Case[]       @relation("CaseCreator")
+  communications    Communication[] @relation("CommunicationCreator")
+  created_documents  Document[]    @relation("DocumentCreator")
+  created_payments   Payment[]     @relation("PaymentCreator")
+  created_refunds    Refund[]      @relation("RefundCreator")
+  processed_refunds  Refund[]      @relation("RefundProcessor")
+  created_contracts  Contract[]    @relation("ContractCreator")
+
+  @@index([email])
+  @@index([status])
+  @@index([created_at])
+  @@map("users")
+}
+
+// Lead model
+model Lead {
+  id          String      @id @default(cuid())
+  customer_id String?
+  title       String
+  description String?
+  status      LeadStatus  @default(NEW)
+  source      LeadSource?
+  value       Float?
+  currency    String      @default("CNY")
+  probability Int         @default(50) // 0-100
+  expected_close_date DateTime?
+  assigned_to String?     // User ID
+  created_by  String      // User ID
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  deleted_at  DateTime?
+
+  // Relationships
+  customer    Customer?   @relation(fields: [customer_id], references: [id])
+  assignee    User?       @relation("LeadAssignee", fields: [assigned_to], references: [id])
+  creator     User        @relation("LeadCreator", fields: [created_by], references: [id])
+  cases       Case[]
+  communications Communication[]
+
+  @@index([customer_id])
+  @@index([assigned_to])
+  @@index([status])
+  @@index([source])
+  @@index([expected_close_date])
+  @@index([created_at])
+  @@map("leads")
+}
+
+// Customer model
+model Customer {
+  id            String         @id @default(cuid())
+  type          CustomerType   @default(INDIVIDUAL)
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  company_name  String?
+  tax_id        String?
+  business_license String?
+  status        CustomerStatus @default(ACTIVE)
+  notes         String?
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  leads         Lead[]
+  cases         Case[]
+  contracts     Contract[]
+  payments      Payment[]
+  refunds       Refund[]
+  communications Communication[]
+  documents     Document[]
+
+  @@index([name])
+  @@index([email])
+  @@index([phone])
+  @@index([type])
+  @@index([status])
+  @@index([created_at])
+  @@map("customers")
+}
+
+// Case model
+model Case {
+  id            String       @id @default(cuid())
+  case_number   String       @unique
+  title         String
+  description   String?
+  customer_id   String
+  lead_id       String?
+  type          CaseType
+  status        CaseStatus   @default(OPEN)
+  priority      CasePriority @default(MEDIUM)
+  assigned_to   String?      // User ID (lawyer)
+  created_by    String       // User ID
+  start_date    DateTime?
+  end_date      DateTime?
+  estimated_value Float?
+  actual_value  Float?
+  currency      String       @default("CNY")
+  location      String?
+  court_name    String?
+  case_number_official String?
+  notes         String?
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  customer      Customer     @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  lead          Lead?        @relation(fields: [lead_id], references: [id])
+  assignee      User?        @relation("CaseAssignee", fields: [assigned_to], references: [id])
+  creator       User         @relation("CaseCreator", fields: [created_by], references: [id])
+  contracts     Contract[]
+  payments      Payment[]
+  refunds       Refund[]
+  documents     Document[]
+  communications Communication[]
+
+  @@index([case_number])
+  @@index([customer_id])
+  @@index([assigned_to])
+  @@index([status])
+  @@index([priority])
+  @@index([type])
+  @@index([created_at])
+  @@index([start_date])
+  @@index([end_date])
+  @@map("cases")
+}
+
+// Contract model
+model Contract {
+  id            String         @id @default(cuid())
+  contract_number String       @unique
+  title         String
+  description   String?
+  customer_id   String
+  case_id       String?
+  type          ContractType
+  status        ContractStatus @default(DRAFT)
+  amount        Float
+  currency      String         @default("CNY")
+  start_date    DateTime?
+  end_date      DateTime?
+  renewal_date  DateTime?
+  terms         String?
+  created_by    String         // User ID
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  customer      Customer       @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  case          Case?          @relation(fields: [case_id], references: [id])
+  creator       User           @relation("ContractCreator", fields: [created_by], references: [id])
+  payments      Payment[]
+  refunds       Refund[]
+  documents     Document[]
+  communications Communication[]
+
+  @@index([contract_number])
+  @@index([customer_id])
+  @@index([case_id])
+  @@index([status])
+  @@index([type])
+  @@index([start_date])
+  @@index([end_date])
+  @@index([created_at])
+  @@map("contracts")
+}
+
+// Payment model
+model Payment {
+  id            String        @id @default(cuid())
+  payment_number String       @unique
+  customer_id   String
+  contract_id   String?
+  case_id       String?
+  amount        Float
+  currency      String        @default("CNY")
+  status        PaymentStatus @default(PENDING)
+  method        PaymentMethod
+  due_date      DateTime?
+  paid_date     DateTime?
+  description   String?
+  notes         String?
+  created_by    String        // User ID
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  customer      Customer       @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  contract      Contract?     @relation(fields: [contract_id], references: [id])
+  case          Case?         @relation(fields: [case_id], references: [id])
+  creator       User          @relation("PaymentCreator", fields: [created_by], references: [id])
+  refunds       Refund[]
+
+  @@index([payment_number])
+  @@index([customer_id])
+  @@index([contract_id])
+  @@index([case_id])
+  @@index([status])
+  @@index([method])
+  @@index([due_date])
+  @@index([paid_date])
+  @@index([created_at])
+  @@map("payments")
+}
+
+// Refund model
+model Refund {
+  id            String        @id @default(cuid())
+  refund_number String        @unique
+  customer_id   String
+  payment_id    String
+  case_id       String?
+  contract_id   String?
+  amount        Float
+  currency      String        @default("CNY")
+  status        RefundStatus @default(REQUESTED)
+  reason        String
+  description   String?
+  processed_by  String?       // User ID
+  processed_at  DateTime?
+  created_by    String        // User ID
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  customer      Customer      @relation(fields: [customer_id], references: [id], onDelete: Cascade)
+  payment       Payment       @relation(fields: [payment_id], references: [id], onDelete: Cascade)
+  processor     User?         @relation("RefundProcessor", fields: [processed_by], references: [id])
+  creator       User          @relation("RefundCreator", fields: [created_by], references: [id])
+  case          Case?         @relation(fields: [case_id], references: [id])
+  contract      Contract?     @relation(fields: [contract_id], references: [id])
+
+  @@index([refund_number])
+  @@index([customer_id])
+  @@index([payment_id])
+  @@index([case_id])
+  @@index([contract_id])
+  @@index([status])
+  @@index([created_at])
+  @@map("refunds")
+}
+
+// Document model
+model Document {
+  id            String         @id @default(cuid())
+  title         String
+  filename      String
+  file_path     String
+  file_size     Int
+  mime_type     String
+  type          DocumentType
+  status        DocumentStatus @default(DRAFT)
+  customer_id   String?
+  case_id       String?
+  contract_id   String?
+  description   String?
+  tags          String[]       // Array of tags
+  created_by    String         // User ID
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  customer      Customer?      @relation(fields: [customer_id], references: [id])
+  case          Case?          @relation(fields: [case_id], references: [id])
+  contract      Contract?      @relation(fields: [contract_id], references: [id])
+  creator       User           @relation("DocumentCreator", fields: [created_by], references: [id])
+
+  @@index([customer_id])
+  @@index([case_id])
+  @@index([contract_id])
+  @@index([type])
+  @@index([status])
+  @@index([created_at])
+  @@map("documents")
+}
+
+// Communication model
+model Communication {
+  id            String             @id @default(cuid())
+  type          CommunicationType
+  status        CommunicationStatus @default(SCHEDULED)
+  subject       String?
+  content       String
+  direction     String             @default("OUTBOUND") // INBOUND, OUTBOUND
+  customer_id   String?
+  case_id       String?
+  lead_id       String?
+  contract_id   String?
+  scheduled_at  DateTime?
+  completed_at  DateTime?
+  duration      Int?               // Duration in minutes
+  participants  String[]           // Array of user IDs
+  notes         String?
+  created_by    String             // User ID
+  created_at    DateTime           @default(now())
+  updated_at    DateTime           @updatedAt
+  deleted_at    DateTime?
+
+  // Relationships
+  customer      Customer?           @relation(fields: [customer_id], references: [id])
+  case          Case?               @relation(fields: [case_id], references: [id])
+  lead          Lead?               @relation(fields: [lead_id], references: [id])
+  contract      Contract?           @relation(fields: [contract_id], references: [id])
+  creator       User                @relation("CommunicationCreator", fields: [created_by], references: [id])
+
+  @@index([customer_id])
+  @@index([case_id])
+  @@index([lead_id])
+  @@index([contract_id])
+  @@index([type])
+  @@index([status])
+  @@index([scheduled_at])
+  @@index([completed_at])
+  @@index([created_at])
+  @@map("communications")
+}
