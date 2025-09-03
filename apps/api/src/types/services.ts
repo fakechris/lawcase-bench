@@ -10,6 +10,9 @@ export interface ServiceConfig {
   retryDelay?: number;
   webhookSecret?: string;
   environment?: 'development' | 'production' | 'test';
+  accountSid?: string;
+  fromNumber?: string;
+  senderId?: string;
 }
 
 export interface ServiceResponse<T = any> {

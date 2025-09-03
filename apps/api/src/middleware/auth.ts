@@ -144,7 +144,7 @@ export class AuthMiddleware {
     };
   }
 
-  static optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  static async optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       next();
@@ -153,24 +153,23 @@ export class AuthMiddleware {
 
     const token = authHeader.substring(7);
 
-    JwtUtils.verifyAccessToken(token)
-      .then(async (decoded) => {
-        if (decoded.type === 'access') {
-          const user = await UserModel.findById(decoded.sub);
-          if (user && user.isActive) {
-            req.user = {
-              id: user.id,
-              email: user.email,
-              username: user.username,
-              roleId: user.roleId,
-            };
-          }
+    try {
+      const decoded = JwtUtils.verifyAccessToken(token);
+      if (decoded.type === 'access') {
+        const user = await UserModel.findById(decoded.sub);
+        if (user && user.isActive) {
+          req.user = {
+            id: user.id,
+            email: user.email,
+            username: user.username,
+            roleId: user.roleId,
+          };
         }
-        next();
-      })
-      .catch(() => {
-        next();
-      });
+      }
+      next();
+    } catch (error) {
+      next();
+    }
   }
 }
 

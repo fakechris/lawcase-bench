@@ -1,3 +1,5 @@
+import { ServiceResponse, ServiceMetrics } from './services.js';
+
 export interface EmailServiceInterface {
   sendEmail(
     to: string | string[],
@@ -28,6 +30,10 @@ export interface EmailServiceInterface {
   cancelScheduledEmail(messageId: string): Promise<void>;
   validateEmail(email: string): Promise<EmailValidationResponse>;
   getEmailStats(filter?: StatsFilter): Promise<EmailStats>;
+  testConnection(): Promise<ServiceResponse<boolean>>;
+  isAvailable(): boolean;
+  getMetrics(): ServiceMetrics;
+  resetMetrics(): void;
   createTemplate(template: EmailTemplate): Promise<EmailTemplate>;
   updateTemplate(templateId: string, template: Partial<EmailTemplate>): Promise<EmailTemplate>;
   deleteTemplate(templateId: string): Promise<void>;
@@ -56,6 +62,7 @@ export interface EmailOptions {
   category?: string;
   campaignId?: string;
   sendAt?: Date;
+  customArgs?: Record<string, any>;
 }
 
 export interface EmailAttachment {
@@ -77,6 +84,7 @@ export interface BulkEmailOptions extends EmailOptions {
   batchSize?: number;
   delayBetweenBatches?: number;
   throttleRate?: number; // emails per second
+  customArgs?: Record<string, any>;
 }
 
 export interface EmailResponse {

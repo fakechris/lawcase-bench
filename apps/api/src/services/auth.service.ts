@@ -16,20 +16,17 @@ import { JwtUtils, PasswordUtils, TokenUtils } from '../utils/jwt.js';
 import { TwoFactorUtils } from '../utils/twoFactor.js';
 
 export class AuthService {
-  private static emailTransporter: nodemailer.Transporter | null = null;
+  private static emailTransporter: nodemailer.Transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
 
   private static getEmailTransporter(): nodemailer.Transporter {
-    if (!this.emailTransporter) {
-      this.emailTransporter = nodemailer.createTransporter({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: false,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      });
-    }
     return this.emailTransporter;
   }
 
@@ -98,10 +95,13 @@ export class AuthService {
     const userResponse = {
       id: user.id,
       email: user.email,
+      username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
       isActive: user.isActive,
       isVerified: user.isVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      roleId: user.roleId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -174,10 +174,13 @@ export class AuthService {
     const userResponse = {
       id: user.id,
       email: user.email,
+      username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
       isActive: user.isActive,
       isVerified: user.isVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      roleId: user.roleId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -235,10 +238,13 @@ export class AuthService {
     const userResponse = {
       id: user.id,
       email: user.email,
+      username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
       isActive: user.isActive,
       isVerified: user.isVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      roleId: user.roleId,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -259,6 +265,7 @@ export class AuthService {
       if (decoded) {
         await TokenBlacklistModel.create({
           token: accessToken,
+          userId: decoded.sub,
           expiresAt: new Date(decoded.exp * 1000),
           reason: 'logout',
         });

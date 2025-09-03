@@ -61,7 +61,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     content: EmailContent,
     options?: EmailOptions
   ): Promise<EmailResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const recipients = Array.isArray(to) ? to : [to];
@@ -117,10 +117,16 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         to: recipients,
         from,
         subject,
-        status: 'queued',
+        status: 'queued' as const,
         sentAt: new Date(),
       };
     }, 'sendEmail');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to send email');
   }
 
   async sendTemplate(
@@ -129,7 +135,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     templateData: Record<string, any>,
     options?: EmailOptions
   ): Promise<EmailResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const recipients = Array.isArray(to) ? to : [to];
@@ -184,10 +190,16 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         to: recipients,
         from,
         subject: 'Template Email',
-        status: 'queued',
+        status: 'queued' as const,
         sentAt: new Date(),
       };
     }, 'sendTemplate');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to send template email');
   }
 
   async sendBulkEmail(
@@ -195,7 +207,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     content: EmailContent,
     options?: BulkEmailOptions
   ): Promise<BulkEmailResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const batchSize = options?.batchSize || 100;
@@ -219,7 +231,6 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
 
           const emailOptions: EmailOptions = {
             ...options,
-            to: [recipient.email],
             customArgs: {
               ...options?.customArgs,
               ...recipient.customArgs,
@@ -273,10 +284,16 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         currency: 'USD',
       };
     }, 'sendBulkEmail');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to send bulk email');
   }
 
   async getEmailStatus(messageId: string): Promise<EmailStatus> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid doesn't provide a direct way to get message status by ID
       // This would typically require using the SendGrid Event Webhook
       // For now, we'll return a mock response
@@ -285,20 +302,32 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         to: ['unknown@example.com'],
         from: 'noreply@lawcasebench.com',
         subject: 'Unknown Subject',
-        status: 'unknown',
+        status: 'queued' as const,
         sentAt: new Date(),
         attempts: 1,
       };
     }, 'getEmailStatus');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to get email status');
   }
 
   async listEmails(_filter?: EmailFilter): Promise<EmailStatus[]> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid doesn't provide a direct way to list sent emails
       // This would typically require using the SendGrid Event Webhook
       // For now, we'll return an empty array
       return [];
     }, 'listEmails');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to list emails');
   }
 
   async scheduleEmail(
@@ -315,15 +344,21 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
   }
 
   async cancelScheduledEmail(_messageId: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid doesn't provide a direct way to cancel scheduled emails
       // This would typically require using the SendGrid API
       console.warn('Cancel scheduled email not implemented for SendGrid');
     }, 'cancelScheduledEmail');
+
+    if (response.success) {
+      return;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to cancel scheduled email');
   }
 
   async validateEmail(email: string): Promise<EmailValidationResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Basic email validation regex
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const isValid = emailRegex.test(email);
@@ -353,10 +388,16 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         smtpCheck: false, // SendGrid doesn't provide SMTP validation
       };
     }, 'validateEmail');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to validate email');
   }
 
   async getEmailStats(_filter?: StatsFilter): Promise<EmailStats> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid doesn't provide a direct way to get email statistics
       // This would typically require using the SendGrid Statistics API
       // For now, we'll return mock data
@@ -377,10 +418,16 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         topCampaigns: [],
       };
     }, 'getEmailStats');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to get email stats');
   }
 
   async createTemplate(template: EmailTemplate): Promise<EmailTemplate> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid template management requires additional API calls
       // This is a simplified implementation
       return {
@@ -390,13 +437,19 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         updatedAt: new Date(),
       };
     }, 'createTemplate');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to create template');
   }
 
   async updateTemplate(
     templateId: string,
     template: Partial<EmailTemplate>
   ): Promise<EmailTemplate> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid template management requires additional API calls
       // This is a simplified implementation
       return {
@@ -413,21 +466,39 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         updatedAt: new Date(),
       };
     }, 'updateTemplate');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to update template');
   }
 
   async deleteTemplate(templateId: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid template management requires additional API calls
       console.warn(`Delete template ${templateId} not implemented for SendGrid`);
     }, 'deleteTemplate');
+
+    if (response.success) {
+      return;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to delete template');
   }
 
   async listTemplates(_filter?: TemplateFilter): Promise<EmailTemplate[]> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Note: SendGrid template management requires additional API calls
       // This is a simplified implementation
       return [];
     }, 'listTemplates');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to list templates');
   }
 
   private processAttachments(attachments?: EmailAttachment[]): any[] {
@@ -442,7 +513,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     }));
   }
 
-  private validateConfig(): void {
+  protected validateConfig(): void {
     super.validateConfig();
 
     if (!this.config.apiKey) {

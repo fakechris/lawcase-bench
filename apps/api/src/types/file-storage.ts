@@ -1,3 +1,5 @@
+import { ServiceResponse, ServiceMetrics } from './services.js';
+
 export interface FileStorageServiceInterface {
   uploadFile(file: FileUpload, options?: UploadOptions): Promise<FileUploadResponse>;
   uploadFileFromUrl(
@@ -24,6 +26,10 @@ export interface FileStorageServiceInterface {
   getFileMetadata(fileId: string): Promise<Record<string, any>>;
   searchFiles(query: string, options?: SearchOptions): Promise<FileInfo[]>;
   getStorageStats(): Promise<StorageStats>;
+  testConnection(): Promise<ServiceResponse<boolean>>;
+  isAvailable(): boolean;
+  getMetrics(): ServiceMetrics;
+  resetMetrics(): void;
 }
 
 export interface FileUpload {

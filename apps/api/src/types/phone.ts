@@ -1,3 +1,5 @@
+import { ServiceResponse, ServiceMetrics } from './services.js';
+
 export interface PhoneServiceInterface {
   makeCall(to: string, from: string, options?: CallOptions): Promise<CallResponse>;
   endCall(callId: string): Promise<void>;
@@ -10,6 +12,10 @@ export interface PhoneServiceInterface {
     participants: string[],
     options?: ConferenceOptions
   ): Promise<ConferenceResponse>;
+  testConnection(): Promise<ServiceResponse<boolean>>;
+  isAvailable(): boolean;
+  getMetrics(): ServiceMetrics;
+  resetMetrics(): void;
 }
 
 export interface CallOptions {

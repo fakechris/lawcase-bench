@@ -1,3 +1,5 @@
+import { ServiceResponse, ServiceMetrics } from './services.js';
+
 export interface SMSServiceInterface {
   sendSMS(to: string, message: string, options?: SMSOptions): Promise<SMSResponse>;
   sendBulkSMS(
@@ -16,6 +18,10 @@ export interface SMSServiceInterface {
   cancelScheduledSMS(messageId: string): Promise<void>;
   validatePhoneNumber(phoneNumber: string): Promise<PhoneValidationResponse>;
   getSMSStats(filter?: StatsFilter): Promise<SMSStats>;
+  testConnection(): Promise<ServiceResponse<boolean>>;
+  isAvailable(): boolean;
+  getMetrics(): ServiceMetrics;
+  resetMetrics(): void;
 }
 
 export interface SMSOptions {

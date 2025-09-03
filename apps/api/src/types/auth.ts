@@ -8,8 +8,9 @@ export interface User {
   isActive: boolean;
   isVerified: boolean;
   twoFactorEnabled: boolean;
-  twoFactorSecret?: string;
-  lastLoginAt?: Date;
+  twoFactorSecret?: string | null;
+  backupCodes?: string[];
+  lastLoginAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
   roleId: string;
@@ -48,9 +49,11 @@ export interface RefreshToken {
 export interface TokenBlacklist {
   id: string;
   token: string;
+  userId: string;
   expiresAt: Date;
   reason: string;
   createdAt: Date;
+  user?: User;
 }
 
 export interface LoginRequest {

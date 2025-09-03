@@ -8,6 +8,7 @@ import {
   ListObjectsV2Command,
   CopyObjectCommand,
   HeadObjectCommand,
+  StorageClass,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -69,7 +70,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
   }
 
   async uploadFile(file: FileUpload, options?: UploadOptions): Promise<FileUploadResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const key = options?.path ? `${options.path}/${file.name}` : file.name;
@@ -87,7 +88,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         },
         Tagging: options?.tags ? options.tags.map((tag) => `${tag}=true`).join('&') : undefined,
         ServerSideEncryption: options?.serverSideEncryption ? 'AES256' : undefined,
-        StorageClass: options?.storageClass || 'STANDARD',
+        StorageClass: options?.storageClass as StorageClass || StorageClass.STANDARD,
         ACL: options?.publicAccess ? 'public-read' : 'private',
       });
 
@@ -112,6 +113,12 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
           : undefined,
       };
     }, 'uploadFile');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to upload file');
   }
 
   async uploadFileFromUrl(
@@ -119,7 +126,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     destinationPath: string,
     options?: UploadOptions
   ): Promise<FileUploadResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const response = await fetch(url);
@@ -143,7 +150,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         },
         Tagging: options?.tags ? options.tags.map((tag) => `${tag}=true`).join('&') : undefined,
         ServerSideEncryption: options?.serverSideEncryption ? 'AES256' : undefined,
-        StorageClass: options?.storageClass || 'STANDARD',
+        StorageClass: options?.storageClass as StorageClass || StorageClass.STANDARD,
         ACL: options?.publicAccess ? 'public-read' : 'private',
       });
 
@@ -168,10 +175,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
           : undefined,
       };
     }, 'uploadFileFromUrl');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to upload file from URL');
   }
 
   async downloadFile(fileId: string, options?: DownloadOptions): Promise<Buffer> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const getObjectCommand = new GetObjectCommand({
@@ -195,10 +208,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       return Buffer.concat(chunks);
     }, 'downloadFile');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to download file');
   }
 
   async getFileUrl(fileId: string, options?: GetUrlOptions): Promise<string> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const getObjectCommand = new GetObjectCommand({
@@ -210,7 +229,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         ResponseContentEncoding: options?.responseHeaders?.['Content-Encoding'],
         ResponseContentLanguage: options?.responseHeaders?.['Content-Language'],
         ResponseContentType: options?.responseHeaders?.['Content-Type'],
-        ResponseExpires: options?.responseHeaders?.['Expires'],
+        ResponseExpires: options?.responseHeaders?.['Expires'] ? new Date(options.responseHeaders['Expires']) : undefined,
       });
 
       const expiresIn = options?.expiresIn || 3600; // Default 1 hour
@@ -218,10 +237,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       return url;
     }, 'getFileUrl');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to get file URL');
   }
 
   async getFileInfo(fileId: string): Promise<FileInfo> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const headObjectCommand = new HeadObjectCommand({
@@ -247,10 +272,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         storageClass: result.StorageClass,
       };
     }, 'getFileInfo');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to get file info');
   }
 
   async listFiles(filter?: FileFilter): Promise<FileInfo[]> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const params: any = {
@@ -331,10 +362,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       return files;
     }, 'listFiles');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to list files');
   }
 
   async deleteFile(fileId: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const deleteObjectCommand = new DeleteObjectCommand({
@@ -344,10 +381,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       await this.client.send(deleteObjectCommand);
     }, 'deleteFile');
+
+    if (response.success) {
+      return;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to delete file');
   }
 
   async copyFile(sourceFileId: string, destinationPath: string): Promise<FileUploadResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const copyObjectCommand = new CopyObjectCommand({
@@ -368,10 +411,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         uploadedAt: new Date(),
       };
     }, 'copyFile');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to copy file');
   }
 
   async moveFile(fileId: string, destinationPath: string): Promise<FileUploadResponse> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       // Copy the file to the new location
       const copyResult = await this.copyFile(fileId, destinationPath);
 
@@ -380,10 +429,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       return copyResult;
     }, 'moveFile');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to move file');
   }
 
   async createFolder(path: string, options?: FolderOptions): Promise<FolderInfo> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       // Create a folder by creating an empty object with a trailing slash
@@ -414,10 +469,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         tags: options?.tags,
       };
     }, 'createFolder');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to create folder');
   }
 
   async listFolder(path: string, options?: ListFolderOptions): Promise<FolderContents> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const prefix = path.endsWith('/') ? path : `${path}/`;
@@ -498,10 +559,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         totalSize,
       };
     }, 'listFolder');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to list folder');
   }
 
   async deleteFolder(path: string, recursive?: boolean): Promise<void> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const folderPath = path.endsWith('/') ? path : `${path}/`;
@@ -528,6 +595,12 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
       // Delete the folder itself
       await this.deleteFile(folderPath);
     }, 'deleteFolder');
+
+    if (response.success) {
+      return;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to delete folder');
   }
 
   async generatePresignedUrl(
@@ -535,7 +608,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     fileId: string,
     expiresIn?: number
   ): Promise<PresignedUrl> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const actualExpiresIn = expiresIn || 3600; // Default 1 hour
@@ -552,7 +625,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
         return {
           url,
-          method: 'GET',
+          method: 'GET' as const,
           expiresAt: new Date(Date.now() + actualExpiresIn * 1000),
         };
       } else {
@@ -567,7 +640,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
         return {
           url,
-          method: 'PUT',
+          method: 'PUT' as const,
           headers: {
             'Content-Type': 'application/octet-stream',
           },
@@ -575,10 +648,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         };
       }
     }, 'generatePresignedUrl');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to generate presigned URL');
   }
 
   async setFileMetadata(fileId: string, metadata: Record<string, any>): Promise<void> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       // To update metadata, we need to copy the object to itself with new metadata
@@ -592,10 +671,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       await this.client.send(copyObjectCommand);
     }, 'setFileMetadata');
+
+    if (response.success) {
+      return;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to set file metadata');
   }
 
   async getFileMetadata(fileId: string): Promise<Record<string, any>> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const headObjectCommand = new HeadObjectCommand({
@@ -607,10 +692,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       return result.Metadata || {};
     }, 'getFileMetadata');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to get file metadata');
   }
 
   async searchFiles(query: string, options?: SearchOptions): Promise<FileInfo[]> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const prefix = options?.path || '';
@@ -626,10 +717,16 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
 
       return searchResults;
     }, 'searchFiles');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to search files');
   }
 
   async getStorageStats(): Promise<StorageStats> {
-    return this.executeWithRetry(async () => {
+    const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
       const files = await this.listFiles();
@@ -681,6 +778,12 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         ],
       };
     }, 'getStorageStats');
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to get storage stats');
   }
 
   private formatBytes(bytes: number): string {
@@ -691,7 +794,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 
-  private validateConfig(): void {
+  protected validateConfig(): void {
     super.validateConfig();
 
     if (!this.config.apiKey) {

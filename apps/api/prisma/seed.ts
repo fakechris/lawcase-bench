@@ -164,9 +164,11 @@ async function main() {
   ];
 
   for (const roleData of roles) {
-    const role = await RoleModel.create({
-      name: roleData.name,
-      description: roleData.description,
+    const role = await prisma.role.create({
+      data: {
+        name: roleData.name,
+        description: roleData.description,
+      },
     });
 
     // Assign permissions to role

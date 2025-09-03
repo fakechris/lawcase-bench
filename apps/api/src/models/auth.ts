@@ -24,14 +24,39 @@ export class UserModel {
     if (!user) return null;
 
     return {
-      ...user,
+      id: user.id,
+      email: user.email,
+      username: user.username || '',
+      password: user.password,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isActive: user.isActive,
+      isVerified: user.isVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      twoFactorSecret: user.twoFactorSecret || undefined,
+      lastLoginAt: user.lastLoginAt || undefined,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      roleId: user.roleId,
       role: user.role
         ? {
-            ...user.role,
-            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+            id: user.role.id,
+            name: user.role.name,
+            description: user.role.description || '',
+            permissions: user.role.rolePermissions.map((rp) => ({
+              id: rp.permission.id,
+              name: rp.permission.name,
+              resource: rp.permission.resource,
+              action: rp.permission.action,
+              description: rp.permission.description,
+              createdAt: rp.permission.createdAt,
+              updatedAt: rp.permission.updatedAt,
+            })),
+            createdAt: user.role.createdAt,
+            updatedAt: user.role.updatedAt,
           }
         : undefined,
-    } as User;
+    };
   }
 
   static async findByEmail(email: string): Promise<User | null> {
@@ -53,14 +78,39 @@ export class UserModel {
     if (!user) return null;
 
     return {
-      ...user,
+      id: user.id,
+      email: user.email,
+      username: user.username || '',
+      password: user.password,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isActive: user.isActive,
+      isVerified: user.isVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      twoFactorSecret: user.twoFactorSecret || undefined,
+      lastLoginAt: user.lastLoginAt || undefined,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      roleId: user.roleId,
       role: user.role
         ? {
-            ...user.role,
-            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+            id: user.role.id,
+            name: user.role.name,
+            description: user.role.description || '',
+            permissions: user.role.rolePermissions.map((rp) => ({
+              id: rp.permission.id,
+              name: rp.permission.name,
+              resource: rp.permission.resource,
+              action: rp.permission.action,
+              description: rp.permission.description,
+              createdAt: rp.permission.createdAt,
+              updatedAt: rp.permission.updatedAt,
+            })),
+            createdAt: user.role.createdAt,
+            updatedAt: user.role.updatedAt,
           }
         : undefined,
-    } as User;
+    };
   }
 
   static async findByUsername(username: string): Promise<User | null> {
@@ -82,69 +132,85 @@ export class UserModel {
     if (!user) return null;
 
     return {
-      ...user,
+      id: user.id,
+      email: user.email,
+      username: user.username || '',
+      password: user.password,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isActive: user.isActive,
+      isVerified: user.isVerified,
+      twoFactorEnabled: user.twoFactorEnabled,
+      twoFactorSecret: user.twoFactorSecret || undefined,
+      lastLoginAt: user.lastLoginAt || undefined,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      roleId: user.roleId,
       role: user.role
         ? {
-            ...user.role,
-            permissions: user.role.rolePermissions.map((rp) => rp.permission),
+            id: user.role.id,
+            name: user.role.name,
+            description: user.role.description || '',
+            permissions: user.role.rolePermissions.map((rp) => ({
+              id: rp.permission.id,
+              name: rp.permission.name,
+              resource: rp.permission.resource,
+              action: rp.permission.action,
+              description: rp.permission.description,
+              createdAt: rp.permission.createdAt,
+              updatedAt: rp.permission.updatedAt,
+            })),
+            createdAt: user.role.createdAt,
+            updatedAt: user.role.updatedAt,
           }
         : undefined,
-    } as User;
+    };
   }
 
   static async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'role'>): Promise<User> {
+    const userData = {
+      email: data.email,
+      username: data.username,
+      password: data.password,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      isActive: data.isActive,
+      isVerified: data.isVerified,
+    };
+
     const user = await prisma.user.create({
-      data,
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-            },
-          },
-        },
+      data: {
+        ...userData,
+        roleId: data.roleId,
       },
     });
 
-    return {
-      ...user,
-      role: user.role
-        ? {
-            ...user.role,
-            permissions: user.role.rolePermissions.map((rp) => rp.permission),
-          }
-        : undefined,
-    } as User;
+    // Fetch the complete user with role
+    return this.findById(user.id) as Promise<User>;
   }
 
   static async update(id: string, data: Partial<User>): Promise<User | null> {
+    const updateData: any = {};
+    
+    if (data.email !== undefined) updateData.email = data.email;
+    if (data.username !== undefined) updateData.username = data.username;
+    if (data.password !== undefined) updateData.password = data.password;
+    if (data.firstName !== undefined) updateData.firstName = data.firstName;
+    if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.isActive !== undefined) updateData.isActive = data.isActive;
+    if (data.isVerified !== undefined) updateData.isVerified = data.isVerified;
+    if (data.lastLoginAt !== undefined) updateData.lastLoginAt = data.lastLoginAt;
+
     const user = await prisma.user.update({
       where: { id },
-      data,
-      include: {
-        role: {
-          include: {
-            rolePermissions: {
-              include: {
-                permission: true,
-              },
-            },
-          },
-        },
+      data: {
+        ...updateData,
+        roleId: data.roleId,
       },
     });
 
-    return {
-      ...user,
-      role: user.role
-        ? {
-            ...user.role,
-            permissions: user.role.rolePermissions.map((rp) => rp.permission),
-          }
-        : undefined,
-    } as User;
+    // Fetch the complete user with role
+    return this.findById(id);
   }
 
   static async updateLastLogin(id: string): Promise<void> {
@@ -177,9 +243,21 @@ export class RoleModel {
     if (!role) return null;
 
     return {
-      ...role,
-      permissions: role.rolePermissions.map((rp) => rp.permission),
-    } as Role;
+      id: role.id,
+      name: role.name,
+      description: role.description || '',
+      permissions: role.rolePermissions.map((rp) => ({
+        id: rp.permission.id,
+        name: rp.permission.name,
+        resource: rp.permission.resource,
+        action: rp.permission.action,
+        description: rp.permission.description || '',
+        createdAt: rp.permission.createdAt,
+        updatedAt: rp.permission.updatedAt,
+      })),
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+    };
   }
 
   static async findByName(name: string): Promise<Role | null> {
@@ -197,9 +275,21 @@ export class RoleModel {
     if (!role) return null;
 
     return {
-      ...role,
-      permissions: role.rolePermissions.map((rp) => rp.permission),
-    } as Role;
+      id: role.id,
+      name: role.name,
+      description: role.description || '',
+      permissions: role.rolePermissions.map((rp) => ({
+        id: rp.permission.id,
+        name: rp.permission.name,
+        resource: rp.permission.resource,
+        action: rp.permission.action,
+        description: rp.permission.description || '',
+        createdAt: rp.permission.createdAt,
+        updatedAt: rp.permission.updatedAt,
+      })),
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+    };
   }
 
   static async findAll(): Promise<Role[]> {
@@ -214,9 +304,21 @@ export class RoleModel {
     });
 
     return roles.map((role) => ({
-      ...role,
-      permissions: role.rolePermissions.map((rp) => rp.permission),
-    })) as Role[];
+      id: role.id,
+      name: role.name,
+      description: role.description || '',
+      permissions: role.rolePermissions.map((rp) => ({
+        id: rp.permission.id,
+        name: rp.permission.name,
+        resource: rp.permission.resource,
+        action: rp.permission.action,
+        description: rp.permission.description || '',
+        createdAt: rp.permission.createdAt,
+        updatedAt: rp.permission.updatedAt,
+      })),
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+    }));
   }
 
   static async create(data: Omit<Role, 'id' | 'createdAt' | 'updatedAt'>): Promise<Role> {
@@ -232,9 +334,21 @@ export class RoleModel {
     });
 
     return {
-      ...role,
-      permissions: role.rolePermissions.map((rp) => rp.permission),
-    } as Role;
+      id: role.id,
+      name: role.name,
+      description: role.description || '',
+      permissions: role.rolePermissions.map((rp) => ({
+        id: rp.permission.id,
+        name: rp.permission.name,
+        resource: rp.permission.resource,
+        action: rp.permission.action,
+        description: rp.permission.description || '',
+        createdAt: rp.permission.createdAt,
+        updatedAt: rp.permission.updatedAt,
+      })),
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
+    };
   }
 }
 
@@ -265,7 +379,7 @@ export class PermissionModel {
 }
 
 export class RefreshTokenModel {
-  static async create(data: Omit<RefreshToken, 'id' | 'createdAt'>): Promise<RefreshToken> {
+  static async create(data: Omit<RefreshToken, 'id' | 'createdAt' | 'user'>): Promise<RefreshToken> {
     return prisma.refreshToken.create({
       data,
       include: {
@@ -307,7 +421,7 @@ export class RefreshTokenModel {
 }
 
 export class TokenBlacklistModel {
-  static async create(data: Omit<TokenBlacklist, 'id' | 'createdAt'>): Promise<TokenBlacklist> {
+  static async create(data: Omit<TokenBlacklist, 'id' | 'createdAt' | 'user'>): Promise<TokenBlacklist> {
     return prisma.tokenBlacklist.create({
       data,
     });

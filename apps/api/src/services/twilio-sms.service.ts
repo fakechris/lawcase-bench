@@ -27,16 +27,25 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
     this.configManager = ServiceConfigManager.getInstance();
 
     this.client = twilio(this.config.apiKey, this.config.apiSecret, {
-      accountSid: this.config.apiKey,
-      timeout: this.config.timeout || 30000,
+      accountSid: this.config.accountSid || this.config.apiKey,
     });
   }
 
   async testConnection(): Promise<ServiceResponse<boolean>> {
-    return this.executeWithRetry(async () => {
-      const account = await this.client.api.v2010.accounts(this.config.apiKey).fetch();
+    const response = await this.executeWithRetry(async () => {
+      const accountSid = this.config.apiKey || this.config.accountSid;
+      if (!accountSid) {
+        throw new Error('Twilio Account SID is required');
+      }
+      const account = await this.client.api.v2010.accounts(accountSid).fetch();
       return account.status === 'active';
     }, 'testConnection');
+
+    if (response.success && response.data) {
+      return response;
+    }
+    
+    throw new Error(response.error?.message || 'Failed to test connection');
   }
 
   async sendSMS(to: string, message: string, options?: SMSOptions): Promise<SMSResponse> {

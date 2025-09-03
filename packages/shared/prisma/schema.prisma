@@ -172,6 +172,8 @@ enum CommunicationStatus {
 model Permission {
   id          String   @id @default(cuid())
   name        String   @unique
+  resource    String
+  action      String
   description String?
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
@@ -252,6 +254,8 @@ model User {
   created_refunds    Refund[]      @relation("RefundCreator")
   processed_refunds  Refund[]      @relation("RefundProcessor")
   created_contracts  Contract[]    @relation("ContractCreator")
+  refreshTokens      RefreshToken[]
+  tokenBlacklists   TokenBlacklist[]
 
   @@index([email])
   @@index([status])
@@ -569,4 +573,32 @@ model Communication {
   @@index([completed_at])
   @@index([created_at])
   @@map("communications")
+}
+
+// RefreshToken model
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// TokenBlacklist model
+model TokenBlacklist {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  reason    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("token_blacklists")
 }
