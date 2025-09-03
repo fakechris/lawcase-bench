@@ -125,7 +125,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to send email');
   }
 
@@ -198,7 +198,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to send template email');
   }
 
@@ -288,7 +288,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to send bulk email');
   }
 
@@ -311,7 +311,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to get email status');
   }
 
@@ -326,7 +326,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to list emails');
   }
 
@@ -353,7 +353,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success) {
       return;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to cancel scheduled email');
   }
 
@@ -392,7 +392,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to validate email');
   }
 
@@ -422,7 +422,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to get email stats');
   }
 
@@ -441,7 +441,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to create template');
   }
 
@@ -470,7 +470,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to update template');
   }
 
@@ -483,7 +483,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success) {
       return;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to delete template');
   }
 
@@ -497,7 +497,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to list templates');
   }
 

@@ -9,11 +9,11 @@ export class UserModel {
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
-        user_roles: {
+        userRoles: {
           include: {
             role: {
               include: {
-                role_permissions: {
+                rolePermissions: {
                   include: {
                     permission: true,
                   },
@@ -27,7 +27,7 @@ export class UserModel {
 
     if (!user) return null;
 
-    const role = user.user_roles[0]?.role;
+    const role = user.userRoles[0]?.role;
 
     return {
       id: user.id,
@@ -220,7 +220,7 @@ export class UserModel {
 
   static async update(id: string, data: Partial<User>): Promise<User | null> {
     const updateData: any = {};
-    
+
     if (data.email !== undefined) updateData.email = data.email;
     if (data.username !== undefined) updateData.username = data.username;
     if (data.password !== undefined) updateData.password_hash = data.password;
@@ -419,7 +419,9 @@ export class PermissionModel {
 }
 
 export class RefreshTokenModel {
-  static async create(data: Omit<RefreshToken, 'id' | 'createdAt' | 'user'>): Promise<RefreshToken> {
+  static async create(
+    data: Omit<RefreshToken, 'id' | 'createdAt' | 'user'>
+  ): Promise<RefreshToken> {
     const token = await prisma.refreshToken.create({
       data: {
         token: data.token,
@@ -449,7 +451,6 @@ export class RefreshTokenModel {
     });
 
     const user = token.user;
-    const role = user.user_roles[0]?.role;
 
     return {
       id: token.id,
@@ -505,7 +506,6 @@ export class RefreshTokenModel {
     if (!refreshToken) return null;
 
     const user = refreshToken.user;
-    const role = user.user_roles[0]?.role;
 
     return {
       id: refreshToken.id,
@@ -558,7 +558,9 @@ export class RefreshTokenModel {
 }
 
 export class TokenBlacklistModel {
-  static async create(data: Omit<TokenBlacklist, 'id' | 'createdAt' | 'user'>): Promise<TokenBlacklist> {
+  static async create(
+    data: Omit<TokenBlacklist, 'id' | 'createdAt' | 'user'>
+  ): Promise<TokenBlacklist> {
     return prisma.tokenBlacklist.create({
       data: {
         token: data.token,

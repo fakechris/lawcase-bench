@@ -44,7 +44,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
     if (response.success && response.data) {
       return response;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to test connection');
   }
 

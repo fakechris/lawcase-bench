@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 
-import { RoleModel, PermissionModel } from '../src/models/auth.js';
+import { PermissionModel } from '../src/models/auth.js';
 
 const prisma = new PrismaClient();
 

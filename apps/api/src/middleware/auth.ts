@@ -144,7 +144,11 @@ export class AuthMiddleware {
     };
   }
 
-  static async optionalAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
+  static async optionalAuth(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       next();

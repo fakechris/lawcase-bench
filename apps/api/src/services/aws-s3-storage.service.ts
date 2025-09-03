@@ -88,7 +88,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         },
         Tagging: options?.tags ? options.tags.map((tag) => `${tag}=true`).join('&') : undefined,
         ServerSideEncryption: options?.serverSideEncryption ? 'AES256' : undefined,
-        StorageClass: options?.storageClass as StorageClass || StorageClass.STANDARD,
+        StorageClass: (options?.storageClass as StorageClass) || StorageClass.STANDARD,
         ACL: options?.publicAccess ? 'public-read' : 'private',
       });
 
@@ -117,7 +117,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to upload file');
   }
 
@@ -150,7 +150,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         },
         Tagging: options?.tags ? options.tags.map((tag) => `${tag}=true`).join('&') : undefined,
         ServerSideEncryption: options?.serverSideEncryption ? 'AES256' : undefined,
-        StorageClass: options?.storageClass as StorageClass || StorageClass.STANDARD,
+        StorageClass: (options?.storageClass as StorageClass) || StorageClass.STANDARD,
         ACL: options?.publicAccess ? 'public-read' : 'private',
       });
 
@@ -179,7 +179,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to upload file from URL');
   }
 
@@ -212,7 +212,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to download file');
   }
 
@@ -229,7 +229,9 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         ResponseContentEncoding: options?.responseHeaders?.['Content-Encoding'],
         ResponseContentLanguage: options?.responseHeaders?.['Content-Language'],
         ResponseContentType: options?.responseHeaders?.['Content-Type'],
-        ResponseExpires: options?.responseHeaders?.['Expires'] ? new Date(options.responseHeaders['Expires']) : undefined,
+        ResponseExpires: options?.responseHeaders?.['Expires']
+          ? new Date(options.responseHeaders['Expires'])
+          : undefined,
       });
 
       const expiresIn = options?.expiresIn || 3600; // Default 1 hour
@@ -241,7 +243,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to get file URL');
   }
 
@@ -276,7 +278,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to get file info');
   }
 
@@ -366,7 +368,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to list files');
   }
 
@@ -385,7 +387,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success) {
       return;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to delete file');
   }
 
@@ -415,7 +417,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to copy file');
   }
 
@@ -433,7 +435,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to move file');
   }
 
@@ -473,7 +475,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to create folder');
   }
 
@@ -563,7 +565,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to list folder');
   }
 
@@ -599,7 +601,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success) {
       return;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to delete folder');
   }
 
@@ -652,7 +654,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to generate presigned URL');
   }
 
@@ -675,7 +677,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success) {
       return;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to set file metadata');
   }
 
@@ -696,7 +698,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to get file metadata');
   }
 
@@ -721,7 +723,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to search files');
   }
 
@@ -782,7 +784,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     if (response.success && response.data) {
       return response.data;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to get storage stats');
   }
 

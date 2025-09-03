@@ -42,7 +42,7 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
     if (response.success && response.data) {
       return response;
     }
-    
+
     throw new Error(response.error?.message || 'Failed to test connection');
   }
 
@@ -167,7 +167,7 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
     }, 'startRecording');
   }
 
-  async stopRecording(callId: string): Promise<void> {
+  async stopRecording(_callId: string): Promise<void> {
     // Note: Twilio recordings cannot be stopped once started
     // This method is kept for interface compatibility
     return Promise.resolve();
@@ -210,15 +210,20 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
         statusCallbackMethod: 'POST',
       };
 
-      const conference = await (this.client.api as any).v2010.accounts(this.config.apiKey).conferences.create(conferenceParams);
+      const conference = await (this.client.api as any).v2010
+        .accounts(this.config.apiKey)
+        .conferences.create(conferenceParams);
 
       const participantPromises = participants.map((participant) =>
-        (this.client.api as any).v2010.accounts(this.config.apiKey).conferences(conference.sid).participants.create({
-          to: participant,
-          from: this.config.fromNumber || this.config.apiKey, // This should be a Twilio phone number
-          earlyMedia: true,
-          endConferenceOnExit: options?.endConferenceOnExit !== false,
-        })
+        (this.client.api as any).v2010
+          .accounts(this.config.apiKey)
+          .conferences(conference.sid)
+          .participants.create({
+            to: participant,
+            from: this.config.fromNumber || this.config.apiKey, // This should be a Twilio phone number
+            earlyMedia: true,
+            endConferenceOnExit: options?.endConferenceOnExit !== false,
+          })
       );
 
       const createdParticipants = await Promise.all(participantPromises);

@@ -227,20 +227,23 @@ model User_Role {
 
 // User model
 model User {
-  id            String     @id @default(cuid())
-  email         String     @unique
-  username      String?    @unique
-  password_hash String
-  first_name    String
-  last_name     String
-  phone         String?
-  avatar_url    String?
-  status        UserStatus @default(PENDING)
-  last_login_at DateTime?
-  email_verified Boolean    @default(false)
-  created_at    DateTime   @default(now())
-  updated_at    DateTime   @updatedAt
-  deleted_at    DateTime?
+  id              String     @id @default(cuid())
+  email           String     @unique
+  username        String?    @unique
+  password_hash   String
+  first_name      String
+  last_name       String
+  phone           String?
+  avatar_url      String?
+  status          UserStatus @default(PENDING)
+  last_login_at   DateTime?
+  email_verified  Boolean    @default(false)
+  two_factor_enabled Boolean  @default(false)
+  two_factor_secret String?
+  backup_codes     String[] // JSON array of backup codes
+  created_at      DateTime   @default(now())
+  updated_at      DateTime   @updatedAt
+  deleted_at      DateTime?
 
   // Relationships
   user_roles         User_Role[]
