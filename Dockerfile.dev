@@ -1,0 +1,40 @@
+FROM node:18-alpine
+
+# Install system dependencies
+RUN apk add --no-cache libc6-compat git
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Set working directory
+WORKDIR /app
+
+# Copy workspace configuration
+COPY pnpm-workspace.yaml pnpm-lock.yaml package.json ./
+
+# Copy package.json files for all workspaces
+COPY apps/web/package.json ./apps/web/
+COPY apps/api/package.json ./apps/api/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install dependencies
+RUN pnpm install
+
+# Copy source code
+COPY . .
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Change ownership of the app directory
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+# Expose ports
+EXPOSE 3000 3001 5555
+
+# Default command
+CMD ["pnpm", "dev"]

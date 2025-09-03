@@ -168,6 +168,18 @@ $RECYCLE.BIN/
 logs/
 *.log
 
+# Source maps
+*.js.map
+*.ts.map
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Lock files (keep only one based on package manager)
+# yarn.lock (if using yarn)
+# package-lock.json (if using npm)
+
 # Temporary files
 tmp/
 temp/
