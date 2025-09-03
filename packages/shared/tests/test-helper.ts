@@ -29,7 +29,13 @@ export async function createTestData() {
     data: [
       { name: 'test.permission', description: '测试权限', resource: 'test', action: 'permission' },
       { name: 'users.read', description: '查看用户', resource: 'users', action: 'read' },
-      { name: 'customers.read', description: '查看客户', resource: 'customers', action: 'read' },
+      { name: 'users.create', description: '创建用户', resource: 'users', action: 'create' },
+      { name: 'users.update', description: '更新用户', resource: 'users', action: 'update' },
+      { name: 'users.delete', description: '删除用户', resource: 'users', action: 'delete' },
+      { name: 'roles.read', description: '查看角色', resource: 'roles', action: 'read' },
+      { name: 'roles.create', description: '创建角色', resource: 'roles', action: 'create' },
+      { name: 'roles.update', description: '更新角色', resource: 'roles', action: 'update' },
+      { name: 'roles.delete', description: '删除角色', resource: 'roles', action: 'delete' },
     ],
   });
 
@@ -54,36 +60,29 @@ export async function createTestData() {
     },
   });
 
-  // 创建客户
-  const customer = await prisma.customer.create({
+  // 创建用户-角色关联
+  await prisma.user_Role.create({
     data: {
-      name: '测试客户',
-      email: 'customer@example.com',
-      phone: '13800138000',
-      type: 'INDIVIDUAL',
-      status: 'ACTIVE',
+      userId: user.id,
+      roleId: role.id,
     },
   });
 
-  // 创建案件
-  const case_ = await prisma.case.create({
-    data: {
-      case_number: 'TEST-001',
-      title: '测试案件',
-      customer_id: customer.id,
-      type: 'CIVIL',
-      status: 'OPEN',
-      priority: 'MEDIUM',
-      created_by: user.id,
-    },
-  });
+  // 为角色分配权限
+  const allPermissions = await prisma.permission.findMany();
+  for (const permission of allPermissions) {
+    await prisma.rolePermission.create({
+      data: {
+        role_id: role.id,
+        permission_id: permission.id,
+      },
+    });
+  }
 
   return {
     permissions,
     role,
     user,
-    customer,
-    case: case_,
   };
 }
 
