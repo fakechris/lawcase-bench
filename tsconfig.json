@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES2022",
-    "module": "ES2022",
-    "lib": ["ES2022"],
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "allowJs": true,
     "checkJs": false,
     "outDir": "./dist",
     "rootDir": ".",
-    "strict": false,
+    "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
@@ -17,10 +17,14 @@
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@lawcase-bench/shared": ["./packages/shared/src"],
+      "@lawcase-bench/*": ["./packages/*/src"]
     },
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "incremental": true,
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
   },
-  "include": ["src/**/*", "jest.setup.js"],
-  "exclude": ["node_modules", "dist", "build", "coverage"]
+  "include": ["apps/*/src/**/*", "packages/*/src/**/*"],
+  "exclude": ["node_modules", "dist", ".next", "build", "coverage", "**/*.test.*", "**/*.spec.*"]
 }

@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: lawcase-bench-postgres
+    environment:
+      POSTGRES_DB: lawcase_bench
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - lawcase-bench-network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: lawcase-bench-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - lawcase-bench-network
+
+  # API Service
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: lawcase-bench-api
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lawcase_bench
+      REDIS_URL: redis://redis:6379
+      PORT: 3001
+    ports:
+      - '3001:3001'
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./apps/api/src:/app/src
+      - /app/node_modules
+    networks:
+      - lawcase-bench-network
+    command: pnpm dev
+
+  # Web Service
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: lawcase-bench-web
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      PORT: 3000
+    ports:
+      - '3000:3000'
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web/src:/app/src
+      - ./apps/web/public:/app/public
+      - /app/node_modules
+    networks:
+      - lawcase-bench-network
+    command: pnpm dev
+
+  # Prisma Studio for database management
+  prisma-studio:
+    image: node:18-alpine
+    container_name: lawcase-bench-prisma-studio
+    working_dir: /app
+    command: npx prisma studio
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/lawcase_bench
+    ports:
+      - '5555:5555'
+    depends_on:
+      - postgres
+    volumes:
+      - ./packages/shared/prisma:/app/prisma
+    networks:
+      - lawcase-bench-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  lawcase-bench-network:
+    driver: bridge
