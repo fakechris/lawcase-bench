@@ -3,6 +3,7 @@ import { Router, Request, Response } from 'express';
 import { serviceManager } from '../services/service-manager.js';
 import { webhookManager } from '../services/webhooks.js';
 import { WebhookPayload } from '../types/services.js';
+import { serviceLogger } from '../utils/logger.js';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get('/status', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error getting service status:', error);
+    serviceLogger.error('Error getting service status:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get service status',
@@ -38,7 +39,7 @@ router.get('/metrics', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error getting service metrics:', error);
+    serviceLogger.error('Error getting service metrics:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get service metrics',
@@ -57,7 +58,7 @@ router.post('/metrics/reset', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error resetting service metrics:', error);
+    serviceLogger.error('Error resetting service metrics:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to reset service metrics',
@@ -76,7 +77,7 @@ router.post('/reinitialize', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error reinitializing services:', error);
+    serviceLogger.error('Error reinitializing services:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to reinitialize services',
@@ -95,7 +96,7 @@ router.get('/validate', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Error validating services:', error);
+    serviceLogger.error('Error validating services:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to validate services',
@@ -140,7 +141,7 @@ router.post('/webhook/:service', async (req: Request, res: Response) => {
       message: 'Webhook processed successfully',
     });
   } catch (error) {
-    console.error('Error processing webhook:', error);
+    serviceLogger.error('Error processing webhook:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to process webhook',
@@ -175,7 +176,7 @@ router.post('/phone/call', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error making phone call:', error);
+    serviceLogger.error('Error making phone call:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to make phone call',
@@ -201,7 +202,7 @@ router.get('/phone/call/:callId', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error getting call info:', error);
+    serviceLogger.error('Error getting call info:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get call info',
@@ -236,7 +237,7 @@ router.post('/sms/send', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error sending SMS:', error);
+    serviceLogger.error('Error sending SMS:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to send SMS',
@@ -262,7 +263,7 @@ router.get('/sms/:messageId', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error getting SMS status:', error);
+    serviceLogger.error('Error getting SMS status:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get SMS status',
@@ -297,7 +298,7 @@ router.post('/email/send', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error sending email:', error);
+    serviceLogger.error('Error sending email:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to send email',
@@ -341,7 +342,7 @@ router.post('/storage/upload', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error uploading file:', error);
+    serviceLogger.error('Error uploading file:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to upload file',
@@ -367,7 +368,7 @@ router.get('/storage/:fileId', async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error) {
-    console.error('Error getting file info:', error);
+    serviceLogger.error('Error getting file info:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to get file info',
@@ -396,7 +397,7 @@ router.get('/storage/:fileId/download', async (req: Request, res: Response) => {
 
     res.send(fileBuffer);
   } catch (error) {
-    console.error('Error downloading file:', error);
+    serviceLogger.error('Error downloading file:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to download file',

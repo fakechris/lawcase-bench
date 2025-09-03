@@ -18,6 +18,7 @@ const config: Config = {
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/index.ts'],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  setupFiles: ['dotenv/config'],
 };
 
 export default config;

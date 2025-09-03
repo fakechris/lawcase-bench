@@ -14,6 +14,7 @@ import {
 } from '../types/auth.js';
 import { JwtUtils, PasswordUtils, TokenUtils } from '../utils/jwt.js';
 import { TwoFactorUtils } from '../utils/twoFactor.js';
+import { authLogger } from '../utils/logger.js';
 
 export class AuthService {
   private static emailTransporter: nodemailer.Transporter = nodemailer.createTransport({
@@ -271,14 +272,14 @@ export class AuthService {
         });
       }
     } catch (error) {
-      console.error('Error blacklisting access token:', error);
+      authLogger.error('Error blacklisting access token:', error);
     }
 
     // Revoke refresh token
     try {
       await RefreshTokenModel.revokeToken(refreshToken);
     } catch (error) {
-      console.error('Error revoking refresh token:', error);
+      authLogger.error('Error revoking refresh token:', error);
     }
   }
 
@@ -400,7 +401,7 @@ export class AuthService {
     try {
       await this.getEmailTransporter().sendMail(mailOptions);
     } catch (error) {
-      console.error('Error sending verification email:', error);
+      authLogger.error('Error sending verification email:', error);
     }
   }
 
@@ -424,7 +425,7 @@ export class AuthService {
     try {
       await this.getEmailTransporter().sendMail(mailOptions);
     } catch (error) {
-      console.error('Error sending password reset email:', error);
+      authLogger.error('Error sending password reset email:', error);
     }
   }
 }

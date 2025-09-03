@@ -13,6 +13,46 @@ import {
   S3WebhookHandler,
 } from '../services/webhooks.js';
 
+// Mock external dependencies
+vi.mock('twilio', () => ({
+  default: vi.fn(() => ({
+    api: {
+      v2010: {
+        accounts: vi.fn(() => ({
+          fetch: vi.fn(() => ({ status: 'active' })),
+        })),
+      },
+    },
+    messages: {
+      create: vi.fn(() => ({ sid: 'test_message_sid' })),
+    },
+  })),
+}));
+
+vi.mock('@sendgrid/mail', () => ({
+  default: {
+    setApiKey: vi.fn(),
+    send: vi.fn(() => Promise.resolve([{ statusCode: 202 }])),
+  },
+}));
+
+vi.mock('@aws-sdk/client-s3', () => ({
+  S3Client: vi.fn(() => ({
+    send: vi.fn((command) => {
+      // For HeadObjectCommand, simulate a successful response
+      if (command.constructor.name === 'HeadObjectCommand') {
+        return Promise.resolve({});
+      }
+      return Promise.resolve({});
+    }),
+  })),
+  HeadObjectCommand: vi.fn().mockImplementation((input) => ({})),
+}));
+
+vi.mock('@aws-sdk/s3-request-presigner', () => ({
+  getSignedUrl: vi.fn(() => 'test-presigned-url'),
+}));
+
 // Mock environment variables
 const mockEnv = {
   PHONE_SERVICE_ENABLED: 'true',
@@ -234,16 +274,18 @@ describe('Service Integration Tests', () => {
     });
 
     it('should validate configuration through public method', async () => {
-      await expect(emailService.testConnection()).resolves.toBe(true);
+      const result = await emailService.testConnection();
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(true);
     });
 
     it('should handle configuration validation errors through public method', async () => {
       const invalidConfig = { ...configManager.getConfig('email'), apiKey: undefined };
       const invalidService = new SendGridEmailService(invalidConfig);
 
-      await expect(invalidService.testConnection()).rejects.toThrow(
-        'Service email requires either apiKey or apiSecret'
-      );
+      const result = await invalidService.testConnection();
+      expect(result.success).toBe(false);
+      expect(result.error?.message).toBe('Service email requires either apiKey or apiSecret');
     });
   });
 
@@ -261,16 +303,18 @@ describe('Service Integration Tests', () => {
     });
 
     it('should validate configuration through public method', async () => {
-      await expect(storageService.testConnection()).resolves.toBe(true);
+      const result = await storageService.testConnection();
+      expect(result.success).toBe(true);
+      expect(result.data).toBe(true);
     });
 
     it('should handle configuration validation errors through public method', async () => {
       const invalidConfig = { ...configManager.getConfig('fileStorage'), apiKey: undefined };
       const invalidService = new AWSS3StorageService(invalidConfig);
 
-      await expect(invalidService.testConnection()).rejects.toThrow(
-        'AWS Access Key ID is required'
-      );
+      const result = await invalidService.testConnection();
+      expect(result.success).toBe(false);
+      expect(result.error?.message).toBe('AWS Access Key ID is required');
     });
   });
 

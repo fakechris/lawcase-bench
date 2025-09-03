@@ -10,6 +10,10 @@ export default defineConfig({
     setupFiles: ['./src/setupTests.ts'],
     include: ['**/*.{test,spec}.ts'],
     exclude: ['node_modules/**', 'dist/**'],
+    env: {
+      NODE_ENV: 'test',
+    },
+    envDir: '.',
   },
   resolve: {
     alias: {

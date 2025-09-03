@@ -6,6 +6,7 @@ import helmet from 'helmet';
 
 import authRoutes from './routes/auth.js';
 import servicesRoutes from './routes/services.js';
+import { logger } from './utils/logger.js';
 
 // Load environment variables
 dotenv.config();
@@ -48,7 +49,7 @@ app.use('*', (req, res) => {
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Error:', err);
+  logger.error('Error:', err);
 
   res.status(500).json({
     success: false,
@@ -58,22 +59,22 @@ app.use((err: Error, req: express.Request, res: express.Response, _next: express
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  logger.info('SIGTERM received, shutting down gracefully');
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
+  logger.info('SIGINT received, shutting down gracefully');
   await prisma.$disconnect();
   process.exit(0);
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 LawCase Bench API server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
+  logger.info(`🚀 LawCase Bench API server running on port ${PORT}`);
+  logger.info(`📊 Health check: http://localhost:${PORT}/health`);
+  logger.info(`🔐 Auth endpoints: http://localhost:${PORT}/api/auth`);
 });
 
 export default app;

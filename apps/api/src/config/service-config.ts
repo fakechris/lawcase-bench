@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 
 import { ServiceConfig } from '../types/services.js';
+import { serviceLogger } from '../utils/logger.js';
 
 dotenv.config();
 
@@ -128,7 +129,7 @@ export class ServiceConfigManager {
     const requiredFields = this.getRequiredFields(serviceName);
     for (const field of requiredFields) {
       if (!config[field as keyof ServiceConfig]) {
-        console.error(`Missing required field '${field}' for service: ${serviceName}`);
+        serviceLogger.error(`Missing required field '${field}' for service: ${serviceName}`);
         return false;
       }
     }

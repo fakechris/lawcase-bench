@@ -30,6 +30,8 @@
     "src/setupTests.ts",
     "prisma/seed.ts",
     "**/*.test.ts",
-    "**/*.spec.ts"
+    "**/*.spec.ts",
+    "vitest.config.ts",
+    "jest.config.ts"
   ]
 }

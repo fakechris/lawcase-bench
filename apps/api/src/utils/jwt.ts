@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { JwtPayload } from '../types/auth.js';
 
+import { logger } from './logger.js';
+
 export class JwtUtils {
   private static readonly ACCESS_TOKEN_SECRET =
     process.env.JWT_ACCESS_SECRET || 'your-access-secret';
@@ -143,6 +145,6 @@ export class TokenUtils {
     // This would typically store the token in a database or Redis
     // For now, we'll implement a simple in-memory check
     // In production, this should be replaced with a proper blacklist mechanism
-    console.log(`Token blacklisted: ${token}, reason: ${reason}`);
+    logger.info(`Token blacklisted: ${token}, reason: ${reason}`);
   }
 }

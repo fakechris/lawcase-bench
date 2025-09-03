@@ -7,6 +7,7 @@ import {
   CircuitBreakerConfig,
   ServiceMetrics,
 } from '../types/services.js';
+import { serviceLogger } from '../utils/logger.js';
 
 export abstract class BaseService {
   protected config: ServiceConfig;
@@ -47,7 +48,7 @@ export abstract class BaseService {
     const startTime = Date.now();
     const requestId = uuidv4();
     let attempts = 0;
-    let lastError: any;
+    let lastError: unknown;
 
     for (attempts = 0; attempts < this.retryConfig.maxAttempts; attempts++) {
       try {
@@ -170,19 +171,19 @@ export abstract class BaseService {
     const result = await this.executeWithRetry(operation, operationName);
     if (!result.success) {
       const error = new Error(result.error?.message || 'Operation failed');
-      (error as any).code = result.error?.code;
-      (error as any).details = result.error?.details;
+      (error as Error & { code?: string }).code = result.error?.code;
+      (error as Error & { details?: unknown }).details = result.error?.details;
       throw error;
     }
     return result.data as T;
   }
 
-  protected isRetryableError(error: any): boolean {
+  protected isRetryableError(error: unknown): boolean {
     const errorCode = this.getErrorCode(error);
     return this.retryConfig.retryableErrors.includes(errorCode);
   }
 
-  protected getErrorCode(error: any): string {
+  protected getErrorCode(error: unknown): string {
     if (error.code) return error.code;
     if (error.response?.status) {
       const status = error.response.status;
@@ -195,11 +196,11 @@ export abstract class BaseService {
     return 'UNKNOWN_ERROR';
   }
 
-  protected getErrorMessage(error: any): string {
+  protected getErrorMessage(error: unknown): string {
     return error.message || 'An unknown error occurred';
   }
 
-  protected getErrorDetails(error: any): any {
+  protected getErrorDetails(error: unknown): unknown {
     return {
       stack: error.stack,
       response: error.response?.data,
@@ -207,8 +208,8 @@ export abstract class BaseService {
     };
   }
 
-  protected logError(operation: string, error: any, attempt: number): void {
-    console.error(`[${this.config.name}] Error in ${operation} (attempt ${attempt}):`, {
+  protected logError(operation: string, error: unknown, attempt: number): void {
+    serviceLogger.error(`[${this.config.name}] Error in ${operation} (attempt ${attempt}):`, {
       code: this.getErrorCode(error),
       message: this.getErrorMessage(error),
       timestamp: new Date().toISOString(),

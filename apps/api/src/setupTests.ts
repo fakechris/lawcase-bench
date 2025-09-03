@@ -1,6 +1,9 @@
 // Test setup file
-import 'dotenv/config';
+import { config } from 'dotenv';
 import { vi } from 'vitest';
+
+// Load test environment variables
+config({ path: '.env.test' });
 
 // Mock external dependencies
 vi.mock('nodemailer');
