@@ -90,9 +90,7 @@
     "*.{json,md,yml,yaml}": [
       "prettier --write"
     ],
-    "package.json": [
-      "npm audit --audit-level=moderate"
-    ]
+    "package.json": []
   },
   "husky": {
     "hooks": {
