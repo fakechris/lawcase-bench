@@ -93,7 +93,9 @@ async function main() {
   ];
 
   for (const permissionData of permissions) {
-    await PermissionModel.create(permissionData);
+    await prisma.permission.create({
+      data: permissionData,
+    });
   }
 
   // Create roles with permissions

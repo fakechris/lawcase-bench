@@ -9,7 +9,7 @@ export class UserModel {
     const user = await prisma.user.findUnique({
       where: { id },
       include: {
-        userRoles: {
+        user_roles: {
           include: {
             role: {
               include: {
@@ -27,7 +27,7 @@ export class UserModel {
 
     if (!user) return null;
 
-    const role = user.userRoles[0]?.role;
+    const role = user.user_roles[0]?.role;
 
     return {
       id: user.id,
@@ -42,25 +42,25 @@ export class UserModel {
       twoFactorSecret: user.two_factor_secret || undefined,
       backupCodes: user.backup_codes || [],
       lastLoginAt: user.last_login_at || undefined,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-      roleId: user.user_roles[0]?.role_id || '',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      roleId: user.user_roles[0]?.roleId || '',
       role: role
         ? {
             id: role.id,
             name: role.name,
             description: role.description || '',
-            permissions: role.role_permissions.map((rp) => ({
+            permissions: role.rolePermissions.map((rp: any) => ({
               id: rp.permission.id,
               name: rp.permission.name,
               resource: rp.permission.resource,
               action: rp.permission.action,
               description: rp.permission.description,
-              createdAt: rp.permission.created_at,
-              updatedAt: rp.permission.updated_at,
+              createdAt: rp.permission.createdAt,
+              updatedAt: rp.permission.updatedAt,
             })),
-            createdAt: role.created_at,
-            updatedAt: role.updated_at,
+            createdAt: role.createdAt,
+            updatedAt: role.updatedAt,
           }
         : undefined,
     };
@@ -74,7 +74,7 @@ export class UserModel {
           include: {
             role: {
               include: {
-                role_permissions: {
+                rolePermissions: {
                   include: {
                     permission: true,
                   },
@@ -103,25 +103,25 @@ export class UserModel {
       twoFactorSecret: user.two_factor_secret || undefined,
       backupCodes: user.backup_codes || [],
       lastLoginAt: user.last_login_at || undefined,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-      roleId: user.user_roles[0]?.role_id || '',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      roleId: user.user_roles[0]?.roleId || '',
       role: role
         ? {
             id: role.id,
             name: role.name,
             description: role.description || '',
-            permissions: role.role_permissions.map((rp) => ({
+            permissions: role.rolePermissions.map((rp: any) => ({
               id: rp.permission.id,
               name: rp.permission.name,
               resource: rp.permission.resource,
               action: rp.permission.action,
               description: rp.permission.description,
-              createdAt: rp.permission.created_at,
-              updatedAt: rp.permission.updated_at,
+              createdAt: rp.permission.createdAt,
+              updatedAt: rp.permission.updatedAt,
             })),
-            createdAt: role.created_at,
-            updatedAt: role.updated_at,
+            createdAt: role.createdAt,
+            updatedAt: role.updatedAt,
           }
         : undefined,
     };
@@ -135,7 +135,7 @@ export class UserModel {
           include: {
             role: {
               include: {
-                role_permissions: {
+                rolePermissions: {
                   include: {
                     permission: true,
                   },
@@ -164,25 +164,25 @@ export class UserModel {
       twoFactorSecret: user.two_factor_secret || undefined,
       backupCodes: user.backup_codes || [],
       lastLoginAt: user.last_login_at || undefined,
-      createdAt: user.created_at,
-      updatedAt: user.updated_at,
-      roleId: user.user_roles[0]?.role_id || '',
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      roleId: user.user_roles[0]?.roleId || '',
       role: role
         ? {
             id: role.id,
             name: role.name,
             description: role.description || '',
-            permissions: role.role_permissions.map((rp) => ({
+            permissions: role.rolePermissions.map((rp: any) => ({
               id: rp.permission.id,
               name: rp.permission.name,
               resource: rp.permission.resource,
               action: rp.permission.action,
               description: rp.permission.description,
-              createdAt: rp.permission.created_at,
-              updatedAt: rp.permission.updated_at,
+              createdAt: rp.permission.createdAt,
+              updatedAt: rp.permission.updatedAt,
             })),
-            createdAt: role.created_at,
-            updatedAt: role.updated_at,
+            createdAt: role.createdAt,
+            updatedAt: role.updatedAt,
           }
         : undefined,
     };
@@ -208,8 +208,8 @@ export class UserModel {
     if (data.roleId) {
       await prisma.user_Role.create({
         data: {
-          user_id: user.id,
-          role_id: data.roleId,
+          userId: user.id,
+          roleId: data.roleId,
         },
       });
     }
@@ -242,14 +242,14 @@ export class UserModel {
     if (data.roleId) {
       // Delete existing role relationships
       await prisma.user_Role.deleteMany({
-        where: { user_id: id },
+        where: { userId: id },
       });
 
       // Create new role relationship
       await prisma.user_Role.create({
         data: {
-          user_id: id,
-          role_id: data.roleId,
+          userId: id,
+          roleId: data.roleId,
         },
       });
     }
@@ -277,7 +277,7 @@ export class RoleModel {
     const role = await prisma.role.findUnique({
       where: { id },
       include: {
-        role_permissions: {
+        rolePermissions: {
           include: {
             permission: true,
           },
@@ -291,17 +291,17 @@ export class RoleModel {
       id: role.id,
       name: role.name,
       description: role.description || '',
-      permissions: role.role_permissions.map((rp) => ({
+      permissions: role.rolePermissions.map((rp: any) => ({
         id: rp.permission.id,
         name: rp.permission.name,
         resource: rp.permission.resource,
         action: rp.permission.action,
         description: rp.permission.description || '',
-        createdAt: rp.permission.created_at,
-        updatedAt: rp.permission.updated_at,
+        createdAt: rp.permission.createdAt,
+        updatedAt: rp.permission.updatedAt,
       })),
-      createdAt: role.created_at,
-      updatedAt: role.updated_at,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
     };
   }
 
@@ -309,7 +309,7 @@ export class RoleModel {
     const role = await prisma.role.findUnique({
       where: { name },
       include: {
-        role_permissions: {
+        rolePermissions: {
           include: {
             permission: true,
           },
@@ -323,24 +323,24 @@ export class RoleModel {
       id: role.id,
       name: role.name,
       description: role.description || '',
-      permissions: role.role_permissions.map((rp) => ({
+      permissions: role.rolePermissions.map((rp: any) => ({
         id: rp.permission.id,
         name: rp.permission.name,
         resource: rp.permission.resource,
         action: rp.permission.action,
         description: rp.permission.description || '',
-        createdAt: rp.permission.created_at,
-        updatedAt: rp.permission.updated_at,
+        createdAt: rp.permission.createdAt,
+        updatedAt: rp.permission.updatedAt,
       })),
-      createdAt: role.created_at,
-      updatedAt: role.updated_at,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
     };
   }
 
   static async findAll(): Promise<Role[]> {
     const roles = await prisma.role.findMany({
       include: {
-        role_permissions: {
+        rolePermissions: {
           include: {
             permission: true,
           },
@@ -352,17 +352,17 @@ export class RoleModel {
       id: role.id,
       name: role.name,
       description: role.description || '',
-      permissions: role.role_permissions.map((rp) => ({
+      permissions: role.rolePermissions.map((rp: any) => ({
         id: rp.permission.id,
         name: rp.permission.name,
         resource: rp.permission.resource,
         action: rp.permission.action,
         description: rp.permission.description || '',
-        createdAt: rp.permission.created_at,
-        updatedAt: rp.permission.updated_at,
+        createdAt: rp.permission.createdAt,
+        updatedAt: rp.permission.updatedAt,
       })),
-      createdAt: role.created_at,
-      updatedAt: role.updated_at,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
     }));
   }
 
@@ -373,7 +373,7 @@ export class RoleModel {
         description: data.description,
       },
       include: {
-        role_permissions: {
+        rolePermissions: {
           include: {
             permission: true,
           },
@@ -386,8 +386,8 @@ export class RoleModel {
       name: role.name,
       description: role.description || '',
       permissions: [],
-      createdAt: role.created_at,
-      updatedAt: role.updated_at,
+      createdAt: role.createdAt,
+      updatedAt: role.updatedAt,
     };
   }
 }
@@ -413,14 +413,17 @@ export class PermissionModel {
     data: Omit<Permission, 'id' | 'createdAt' | 'updatedAt'>
   ): Promise<Permission> {
     return prisma.permission.create({
-      data,
+      data: {
+        ...data,
+        description: data.description || '',
+      },
     });
   }
 }
 
 export class RefreshTokenModel {
   static async create(
-    data: Omit<RefreshToken, 'id' | 'createdAt' | 'user'>
+    data: Omit<RefreshToken, 'id' | 'user' | 'createdAt'>
   ): Promise<RefreshToken> {
     const token = await prisma.refreshToken.create({
       data: {
@@ -436,7 +439,7 @@ export class RefreshTokenModel {
               include: {
                 role: {
                   include: {
-                    role_permissions: {
+                    rolePermissions: {
                       include: {
                         permission: true,
                       },
@@ -458,7 +461,7 @@ export class RefreshTokenModel {
       userId: token.userId,
       expiresAt: token.expiresAt,
       isRevoked: token.isRevoked,
-      createdAt: token.created_at,
+      createdAt: token.createdAt,
       user: {
         id: user.id,
         email: user.email,
@@ -472,9 +475,9 @@ export class RefreshTokenModel {
         twoFactorSecret: user.two_factor_secret || undefined,
         backupCodes: user.backup_codes || [],
         lastLoginAt: user.last_login_at || undefined,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
-        roleId: user.user_roles[0]?.role_id || '',
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        roleId: user.user_roles[0]?.roleId || '',
       },
     };
   }
@@ -489,7 +492,7 @@ export class RefreshTokenModel {
               include: {
                 role: {
                   include: {
-                    role_permissions: {
+                    rolePermissions: {
                       include: {
                         permission: true,
                       },
@@ -513,7 +516,7 @@ export class RefreshTokenModel {
       userId: refreshToken.userId,
       expiresAt: refreshToken.expiresAt,
       isRevoked: refreshToken.isRevoked,
-      createdAt: refreshToken.created_at,
+      createdAt: refreshToken.createdAt,
       user: {
         id: user.id,
         email: user.email,
@@ -527,9 +530,9 @@ export class RefreshTokenModel {
         twoFactorSecret: user.two_factor_secret || undefined,
         backupCodes: user.backup_codes || [],
         lastLoginAt: user.last_login_at || undefined,
-        createdAt: user.created_at,
-        updatedAt: user.updated_at,
-        roleId: user.user_roles[0]?.role_id || '',
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        roleId: user.user_roles[0]?.roleId || '',
       },
     };
   }
@@ -559,7 +562,7 @@ export class RefreshTokenModel {
 
 export class TokenBlacklistModel {
   static async create(
-    data: Omit<TokenBlacklist, 'id' | 'createdAt' | 'user'>
+    data: Omit<TokenBlacklist, 'id' | 'user' | 'createdAt'>
   ): Promise<TokenBlacklist> {
     return prisma.tokenBlacklist.create({
       data: {

@@ -179,15 +179,17 @@ describe('Service Integration Tests', () => {
       expect(phoneService.isAvailable()).toBe(true);
     });
 
-    it('should validate configuration', () => {
-      expect(() => phoneService.validateConfig()).not.toThrow();
+    it('should validate configuration through public method', async () => {
+      await expect(phoneService.testConnection()).resolves.toBeDefined();
     });
 
-    it('should handle configuration validation errors', () => {
+    it('should handle configuration validation errors through public method', async () => {
       const invalidConfig = { ...configManager.getConfig('phone'), apiKey: undefined };
       const invalidService = new TwilioPhoneService(invalidConfig);
 
-      expect(() => invalidService.validateConfig()).toThrow('Twilio Account SID is required');
+      await expect(invalidService.testConnection()).rejects.toThrow(
+        'Twilio Account SID is required'
+      );
     });
   });
 
@@ -204,15 +206,17 @@ describe('Service Integration Tests', () => {
       expect(smsService.isAvailable()).toBe(true);
     });
 
-    it('should validate configuration', () => {
-      expect(() => smsService.validateConfig()).not.toThrow();
+    it('should validate configuration through public method', async () => {
+      await expect(smsService.testConnection()).resolves.toBeDefined();
     });
 
-    it('should handle configuration validation errors', () => {
+    it('should handle configuration validation errors through public method', async () => {
       const invalidConfig = { ...configManager.getConfig('sms'), apiKey: undefined };
       const invalidService = new TwilioSMSService(invalidConfig);
 
-      expect(() => invalidService.validateConfig()).toThrow('Twilio Account SID is required');
+      await expect(invalidService.testConnection()).rejects.toThrow(
+        'Twilio Account SID is required'
+      );
     });
   });
 
@@ -229,15 +233,15 @@ describe('Service Integration Tests', () => {
       expect(emailService.isAvailable()).toBe(true);
     });
 
-    it('should validate configuration', () => {
-      expect(() => emailService.validateConfig()).not.toThrow();
+    it('should validate configuration through public method', async () => {
+      await expect(emailService.testConnection()).resolves.toBe(true);
     });
 
-    it('should handle configuration validation errors', () => {
+    it('should handle configuration validation errors through public method', async () => {
       const invalidConfig = { ...configManager.getConfig('email'), apiKey: undefined };
       const invalidService = new SendGridEmailService(invalidConfig);
 
-      expect(() => invalidService.validateConfig()).toThrow(
+      await expect(invalidService.testConnection()).rejects.toThrow(
         'Service email requires either apiKey or apiSecret'
       );
     });
@@ -256,15 +260,17 @@ describe('Service Integration Tests', () => {
       expect(storageService.isAvailable()).toBe(true);
     });
 
-    it('should validate configuration', () => {
-      expect(() => storageService.validateConfig()).not.toThrow();
+    it('should validate configuration through public method', async () => {
+      await expect(storageService.testConnection()).resolves.toBe(true);
     });
 
-    it('should handle configuration validation errors', () => {
+    it('should handle configuration validation errors through public method', async () => {
       const invalidConfig = { ...configManager.getConfig('fileStorage'), apiKey: undefined };
       const invalidService = new AWSS3StorageService(invalidConfig);
 
-      expect(() => invalidService.validateConfig()).toThrow('AWS Access Key ID is required');
+      await expect(invalidService.testConnection()).rejects.toThrow(
+        'AWS Access Key ID is required'
+      );
     });
   });
 
