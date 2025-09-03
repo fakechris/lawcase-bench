@@ -39,7 +39,7 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
   }
 
   async makeCall(to: string, from: string, options?: CallOptions): Promise<CallResponse> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       this.validateConfig();
 
       const callParams: any = {

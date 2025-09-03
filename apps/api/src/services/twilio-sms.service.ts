@@ -40,7 +40,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
   }
 
   async sendSMS(to: string, message: string, options?: SMSOptions): Promise<SMSResponse> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       this.validateConfig();
 
       const smsParams: any = {
@@ -67,7 +67,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
         from: sms.from,
         status: sms.status as any,
         message: sms.body,
-        segments: sms.numSegments,
+        segments: parseInt(sms.numSegments?.toString() || '0', 10),
         cost: sms.price ? parseFloat(sms.price) : undefined,
         currency: sms.priceUnit,
         sentAt: new Date(sms.dateCreated),
@@ -82,7 +82,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
     message: string,
     options?: BulkSMSOptions
   ): Promise<BulkSMSResponse> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       this.validateConfig();
 
       const batchSize = options?.batchSize || 50;
@@ -138,7 +138,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
   }
 
   async getSMSStatus(messageId: string): Promise<SMSStatus> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       const message = await this.client.messages(messageId).fetch();
 
       return {
@@ -147,12 +147,12 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
         from: message.from,
         status: message.status as any,
         message: message.body,
-        segments: message.numSegments,
+        segments: parseInt(message.numSegments?.toString() || '0', 10),
         cost: message.price ? parseFloat(message.price) : undefined,
         currency: message.priceUnit,
         sentAt: new Date(message.dateCreated),
         attempts: 1,
-        carrier: message.carrier,
+        carrier: (message as any).carrier,
         countryCode: message.to?.split('-')[0],
         messageType: 'transactional',
         dlrReceived: message.status === 'delivered',
@@ -161,7 +161,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
   }
 
   async listSMS(filter?: SMSFilter): Promise<SMSStatus[]> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       const params: any = {
         limit: filter?.limit || 50,
         pageSize: Math.min(filter?.limit || 50, 1000),
@@ -181,12 +181,12 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
         from: message.from,
         status: message.status as any,
         message: message.body,
-        segments: message.numSegments,
+        segments: parseInt(message.numSegments?.toString() || '0', 10),
         cost: message.price ? parseFloat(message.price) : undefined,
         currency: message.priceUnit,
         sentAt: new Date(message.dateCreated),
         attempts: 1,
-        carrier: message.carrier,
+        carrier: (message as any).carrier,
         countryCode: message.to?.split('-')[0],
         messageType: 'transactional',
         dlrReceived: message.status === 'delivered',
@@ -200,7 +200,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
     sendAt: Date,
     options?: SMSOptions
   ): Promise<SMSResponse> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       this.validateConfig();
 
       const smsParams: any = {
@@ -225,7 +225,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
         from: sms.from,
         status: sms.status as any,
         message: sms.body,
-        segments: sms.numSegments,
+        segments: parseInt(sms.numSegments?.toString() || '0', 10),
         cost: sms.price ? parseFloat(sms.price) : undefined,
         currency: sms.priceUnit,
         sentAt: new Date(sms.dateCreated),
@@ -236,13 +236,13 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
   }
 
   async cancelScheduledSMS(messageId: string): Promise<void> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       await this.client.messages(messageId).update({ status: 'canceled' });
     }, 'cancelScheduledSMS');
   }
 
   async validatePhoneNumber(phoneNumber: string): Promise<PhoneValidationResponse> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       try {
         const lookup = await this.client.lookups.v2.phoneNumbers(phoneNumber).fetch({
           fields: 'line_type_intelligence',
@@ -269,7 +269,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
   }
 
   async getSMSStats(filter?: StatsFilter): Promise<SMSStats> {
-    return this.executeWithRetry(async () => {
+    return this.executeWithRetryOrThrow(async () => {
       const params: any = {
         limit: 1000,
       };
@@ -297,7 +297,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
 
       messages.forEach((message) => {
         const country = message.to?.split('-')[0] || 'unknown';
-        const carrier = message.carrier || 'unknown';
+        const carrier = (message as any).carrier || 'unknown';
         const cost = parseFloat(message.price || '0');
 
         countryStats.set(country, (countryStats.get(country) || 0) + 1);
@@ -327,7 +327,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
     }, 'getSMSStats');
   }
 
-  private validateConfig(): void {
+  protected validateConfig(): void {
     super.validateConfig();
 
     if (!this.config.apiKey) {

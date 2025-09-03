@@ -163,6 +163,20 @@ export abstract class BaseService {
     };
   }
 
+  protected async executeWithRetryOrThrow<T>(
+    operation: () => Promise<T>,
+    operationName: string
+  ): Promise<T> {
+    const result = await this.executeWithRetry(operation, operationName);
+    if (!result.success) {
+      const error = new Error(result.error?.message || 'Operation failed');
+      (error as any).code = result.error?.code;
+      (error as any).details = result.error?.details;
+      throw error;
+    }
+    return result.data as T;
+  }
+
   protected isRetryableError(error: any): boolean {
     const errorCode = this.getErrorCode(error);
     return this.retryConfig.retryableErrors.includes(errorCode);

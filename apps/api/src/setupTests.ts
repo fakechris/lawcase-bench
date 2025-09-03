@@ -1,5 +1,6 @@
 // Test setup file
 import 'dotenv/config';
+import { vi } from 'vitest';
 
 // Mock external dependencies
 vi.mock('nodemailer');
