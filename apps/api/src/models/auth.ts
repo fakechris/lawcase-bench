@@ -50,7 +50,7 @@ export class UserModel {
             id: role.id,
             name: role.name,
             description: role.description || '',
-            permissions: role.rolePermissions.map((rp: any) => ({
+            permissions: role.rolePermissions.map((rp: { permission: Permission }) => ({
               id: rp.permission.id,
               name: rp.permission.name,
               resource: rp.permission.resource,
@@ -111,7 +111,7 @@ export class UserModel {
             id: role.id,
             name: role.name,
             description: role.description || '',
-            permissions: role.rolePermissions.map((rp: any) => ({
+            permissions: role.rolePermissions.map((rp: { permission: Permission }) => ({
               id: rp.permission.id,
               name: rp.permission.name,
               resource: rp.permission.resource,
@@ -172,7 +172,7 @@ export class UserModel {
             id: role.id,
             name: role.name,
             description: role.description || '',
-            permissions: role.rolePermissions.map((rp: any) => ({
+            permissions: role.rolePermissions.map((rp: { permission: Permission }) => ({
               id: rp.permission.id,
               name: rp.permission.name,
               resource: rp.permission.resource,
@@ -219,7 +219,7 @@ export class UserModel {
   }
 
   static async update(id: string, data: Partial<User>): Promise<User | null> {
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     if (data.email !== undefined) updateData.email = data.email;
     if (data.username !== undefined) updateData.username = data.username;
@@ -291,7 +291,7 @@ export class RoleModel {
       id: role.id,
       name: role.name,
       description: role.description || '',
-      permissions: role.rolePermissions.map((rp: any) => ({
+      permissions: role.rolePermissions.map((rp: { permission: Permission }) => ({
         id: rp.permission.id,
         name: rp.permission.name,
         resource: rp.permission.resource,
@@ -323,7 +323,7 @@ export class RoleModel {
       id: role.id,
       name: role.name,
       description: role.description || '',
-      permissions: role.rolePermissions.map((rp: any) => ({
+      permissions: role.rolePermissions.map((rp: { permission: Permission }) => ({
         id: rp.permission.id,
         name: rp.permission.name,
         resource: rp.permission.resource,
@@ -352,7 +352,7 @@ export class RoleModel {
       id: role.id,
       name: role.name,
       description: role.description || '',
-      permissions: role.rolePermissions.map((rp: any) => ({
+      permissions: role.rolePermissions.map((rp: { permission: Permission }) => ({
         id: rp.permission.id,
         name: rp.permission.name,
         resource: rp.permission.resource,

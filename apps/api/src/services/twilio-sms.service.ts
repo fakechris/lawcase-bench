@@ -17,6 +17,37 @@ import {
 
 import { BaseService } from './base.service.js';
 
+interface TwilioMessage {
+  sid: string;
+  to: string;
+  from: string;
+  body: string;
+  status: string;
+  dateCreated: Date;
+  numSegments?: string;
+  price?: string;
+  priceUnit?: string;
+  errorCode?: number;
+  errorMessage?: string;
+  carrier?: {
+    name: string;
+    type: string;
+    mcc: string;
+    mnc: string;
+  };
+}
+
+interface TwilioLookup {
+  phoneNumber: string;
+  valid: boolean;
+  countryCode: string;
+  lineTypeIntelligence?: {
+    type: string;
+    carrier_name: string;
+    location: string;
+  };
+}
+
 export class TwilioSMSService extends BaseService implements SMSServiceInterface {
   private client: twilio.Twilio;
   private configManager: ServiceConfigManager;
@@ -52,7 +83,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
     return this.executeWithRetryOrThrow(async () => {
       this.validateConfig();
 
-      const smsParams: any = {
+      const smsParams: Record<string, unknown> = {
         to,
         body: message,
         from: options?.from || options?.senderId,
@@ -74,7 +105,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
         messageId: sms.sid,
         to: sms.to,
         from: sms.from,
-        status: sms.status as any,
+        status: sms.status as SMSResponse['status'],
         message: sms.body,
         segments: parseInt(sms.numSegments?.toString() || '0', 10),
         cost: sms.price ? parseFloat(sms.price) : undefined,
@@ -102,66 +133,68 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
         batches.push(recipients.slice(i, i + batchSize));
       }
 
-      const allResults: SMSResponse[] = [];
-      let totalCost = 0;
+      const allMessages: SMSResponse[] = [];
+      let successfulCount = 0;
+      let failedCount = 0;
 
-      for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i];
-        const batchPromises = batch.map((recipient) => this.sendSMS(recipient, message, options));
+      for (const batch of batches) {
+        const promises = batch.map((recipient) =>
+          this.sendSMS(recipient, message, options).catch((error) => {
+            failedCount++;
+            return {
+              messageId: '',
+              to: recipient,
+              from: options?.from || options?.senderId || '',
+              status: 'failed' as const,
+              message,
+              segments: 0,
+              errorCode: error.code?.toString(),
+              errorMessage: error.message,
+              sentAt: new Date(),
+            };
+          })
+        );
 
-        const batchResults = await Promise.all(batchPromises);
-        allResults.push(...batchResults);
+        const results = await Promise.all(promises);
+        allMessages.push(...results);
+        successfulCount += results.filter((r) => r.status !== 'failed').length;
 
-        // Calculate total cost
-        batchResults.forEach((result) => {
-          if (result.cost) {
-            totalCost += result.cost;
-          }
-        });
-
-        // Add delay between batches if not the last batch
-        if (i < batches.length - 1 && delayBetweenBatches > 0) {
-          await this.sleep(delayBetweenBatches);
+        if (batch !== batches[batches.length - 1]) {
+          await new Promise((resolve) => setTimeout(resolve, delayBetweenBatches));
         }
       }
 
-      const successfulCount = allResults.filter(
-        (r) => r.status === 'delivered' || r.status === 'sent'
-      ).length;
-      const failedCount = allResults.filter(
-        (r) => r.status === 'failed' || r.status === 'undelivered'
-      ).length;
-      const pendingCount = allResults.length - successfulCount - failedCount;
+      const totalCost = allMessages.reduce((sum, msg) => sum + (msg.cost || 0), 0);
 
       return {
-        batchId: `batch_${Date.now()}`,
+        batchId: `bulk-${Date.now()}`,
         totalRecipients: recipients.length,
         successfulCount,
         failedCount,
-        pendingCount,
-        messages: allResults,
+        pendingCount: 0,
+        messages: allMessages,
         cost: totalCost > 0 ? totalCost : undefined,
-        currency: allResults[0]?.currency,
+        currency: 'USD',
       };
     }, 'sendBulkSMS');
   }
 
   async getSMSStatus(messageId: string): Promise<SMSStatus> {
     return this.executeWithRetryOrThrow(async () => {
-      const message = await this.client.messages(messageId).fetch();
+      const message = (await this.client.messages(messageId).fetch()) as TwilioMessage;
 
       return {
         messageId: message.sid,
         to: message.to,
         from: message.from,
-        status: message.status as any,
+        status: message.status as SMSResponse['status'],
         message: message.body,
         segments: parseInt(message.numSegments?.toString() || '0', 10),
         cost: message.price ? parseFloat(message.price) : undefined,
         currency: message.priceUnit,
         sentAt: new Date(message.dateCreated),
         attempts: 1,
-        carrier: (message as any).carrier,
+        carrier: message.carrier?.name,
         countryCode: message.to?.split('-')[0],
         messageType: 'transactional',
         dlrReceived: message.status === 'delivered',
@@ -171,7 +204,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
 
   async listSMS(filter?: SMSFilter): Promise<SMSStatus[]> {
     return this.executeWithRetryOrThrow(async () => {
-      const params: any = {
+      const params: Record<string, unknown> = {
         limit: filter?.limit || 50,
         pageSize: Math.min(filter?.limit || 50, 1000),
       };
@@ -182,20 +215,20 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
       if (filter?.startDate) params.dateSentAfter = new Date(filter.startDate);
       if (filter?.endDate) params.dateSentBefore = new Date(filter.endDate);
 
-      const messages = await this.client.messages.list(params);
+      const messages = (await this.client.messages.list(params)) as TwilioMessage[];
 
       return messages.map((message) => ({
         messageId: message.sid,
         to: message.to,
         from: message.from,
-        status: message.status as any,
+        status: message.status as SMSResponse['status'],
         message: message.body,
         segments: parseInt(message.numSegments?.toString() || '0', 10),
         cost: message.price ? parseFloat(message.price) : undefined,
         currency: message.priceUnit,
         sentAt: new Date(message.dateCreated),
         attempts: 1,
-        carrier: (message as any).carrier,
+        carrier: message.carrier?.name,
         countryCode: message.to?.split('-')[0],
         messageType: 'transactional',
         dlrReceived: message.status === 'delivered',
@@ -212,7 +245,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
     return this.executeWithRetryOrThrow(async () => {
       this.validateConfig();
 
-      const smsParams: any = {
+      const smsParams: Record<string, unknown> = {
         to,
         body: message,
         from: options?.from || options?.senderId,
@@ -232,7 +265,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
         messageId: sms.sid,
         to: sms.to,
         from: sms.from,
-        status: sms.status as any,
+        status: sms.status as SMSResponse['status'],
         message: sms.body,
         segments: parseInt(sms.numSegments?.toString() || '0', 10),
         cost: sms.price ? parseFloat(sms.price) : undefined,
@@ -253,14 +286,14 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
   async validatePhoneNumber(phoneNumber: string): Promise<PhoneValidationResponse> {
     return this.executeWithRetryOrThrow(async () => {
       try {
-        const lookup = await this.client.lookups.v2.phoneNumbers(phoneNumber).fetch({
+        const lookup = (await this.client.lookups.v2.phoneNumbers(phoneNumber).fetch({
           fields: 'line_type_intelligence',
-        });
+        })) as TwilioLookup;
 
         return {
           phoneNumber: lookup.phoneNumber,
           isValid: lookup.valid,
-          type: (lookup.lineTypeIntelligence?.type as any) || 'unknown',
+          type: (lookup.lineTypeIntelligence?.type as PhoneValidationResponse['type']) || 'unknown',
           carrier: lookup.lineTypeIntelligence?.carrier_name,
           country: lookup.countryCode,
           countryCode: lookup.countryCode,
@@ -279,14 +312,14 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
 
   async getSMSStats(filter?: StatsFilter): Promise<SMSStats> {
     return this.executeWithRetryOrThrow(async () => {
-      const params: any = {
+      const params: Record<string, unknown> = {
         limit: 1000,
       };
 
       if (filter?.startDate) params.dateSentAfter = new Date(filter.startDate);
       if (filter?.endDate) params.dateSentBefore = new Date(filter.endDate);
 
-      const messages = await this.client.messages.list(params);
+      const messages = (await this.client.messages.list(params)) as TwilioMessage[];
 
       const totalSent = messages.length;
       const totalDelivered = messages.filter((m) => m.status === 'delivered').length;
@@ -306,7 +339,7 @@ export class TwilioSMSService extends BaseService implements SMSServiceInterface
 
       messages.forEach((message) => {
         const country = message.to?.split('-')[0] || 'unknown';
-        const carrier = (message as any).carrier || 'unknown';
+        const carrier = message.carrier?.name || 'unknown';
         const cost = parseFloat(message.price || '0');
 
         countryStats.set(country, (countryStats.get(country) || 0) + 1);

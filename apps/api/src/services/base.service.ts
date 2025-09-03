@@ -9,6 +9,19 @@ import {
 } from '../types/services.js';
 import { serviceLogger } from '../utils/logger.js';
 
+interface ErrorWithCode {
+  code?: string;
+  message?: string;
+  response?: {
+    status?: number;
+    data?: unknown;
+  };
+}
+
+interface ErrorWithMessage {
+  message: string;
+}
+
 export abstract class BaseService {
   protected config: ServiceConfig;
   protected retryConfig: RetryConfig;
@@ -185,7 +198,7 @@ export abstract class BaseService {
 
   protected getErrorCode(error: unknown): string {
     if (typeof error === 'object' && error !== null) {
-      const err = error as any;
+      const err = error as ErrorWithCode;
       if (err.code) return err.code;
       if (err.response?.status) {
         const status = err.response.status;
@@ -201,17 +214,17 @@ export abstract class BaseService {
 
   protected getErrorMessage(error: unknown): string {
     if (typeof error === 'object' && error !== null && 'message' in error) {
-      return (error as any).message || 'An unknown error occurred';
+      return (error as ErrorWithMessage).message || 'An unknown error occurred';
     }
     return 'An unknown error occurred';
   }
 
   protected getErrorDetails(error: unknown): unknown {
     if (typeof error === 'object' && error !== null) {
-      const err = error as any;
+      const err = error as Error & { stack?: string; config?: unknown };
       return {
         stack: err.stack,
-        response: err.response?.data,
+        response: (error as ErrorWithCode).response?.data,
         config: err.config,
       };
     }

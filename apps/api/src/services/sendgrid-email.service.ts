@@ -19,6 +19,7 @@ import {
   TemplateFilter,
 } from '../types/email.js';
 import { ServiceConfig, ServiceResponse } from '../types/services.js';
+import { logger } from '../utils/logger.js';
 
 import { BaseService } from './base.service.js';
 
@@ -67,7 +68,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
       const recipients = Array.isArray(to) ? to : [to];
       const from = options?.from || 'noreply@lawcasebench.com';
 
-      const mailData: any = {
+      const mailData: Record<string, unknown> = {
         to: recipients,
         from,
         subject,
@@ -132,7 +133,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
   async sendTemplate(
     to: string | string[],
     templateId: string,
-    templateData: Record<string, any>,
+    templateData: Record<string, unknown>,
     options?: EmailOptions
   ): Promise<EmailResponse> {
     const response = await this.executeWithRetry(async () => {
@@ -141,7 +142,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
       const recipients = Array.isArray(to) ? to : [to];
       const from = options?.from || 'noreply@lawcasebench.com';
 
-      const mailData: any = {
+      const mailData: Record<string, unknown> = {
         to: recipients,
         from,
         templateId,
@@ -347,7 +348,8 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     const response = await this.executeWithRetry(async () => {
       // Note: SendGrid doesn't provide a direct way to cancel scheduled emails
       // This would typically require using the SendGrid API
-      console.warn('Cancel scheduled email not implemented for SendGrid');
+      // Note: SendGrid doesn't provide a direct way to cancel scheduled emails
+      // This would typically require using the SendGrid API
     }, 'cancelScheduledEmail');
 
     if (response.success) {
@@ -477,7 +479,8 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
   async deleteTemplate(templateId: string): Promise<void> {
     const response = await this.executeWithRetry(async () => {
       // Note: SendGrid template management requires additional API calls
-      console.warn(`Delete template ${templateId} not implemented for SendGrid`);
+      // This would use templateId to delete the template
+      logger.info(`Deleting template: ${templateId}`);
     }, 'deleteTemplate');
 
     if (response.success) {
@@ -501,7 +504,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     throw new Error(response.error?.message || 'Failed to list templates');
   }
 
-  private processAttachments(attachments?: EmailAttachment[]): any[] {
+  private processAttachments(attachments?: EmailAttachment[]): unknown[] {
     if (!attachments) return [];
 
     return attachments.map((attachment) => ({

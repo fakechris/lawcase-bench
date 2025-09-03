@@ -4,6 +4,7 @@ import { FileStorageServiceInterface } from '../types/file-storage.js';
 import { PhoneServiceInterface } from '../types/phone.js';
 import { ServiceConfig } from '../types/services.js';
 import { SMSServiceInterface } from '../types/sms.js';
+import { serviceLogger } from '../utils/logger.js';
 
 import { AWSS3StorageService } from './aws-s3-storage.service.js';
 import { SendGridEmailService } from './sendgrid-email.service.js';
@@ -40,39 +41,39 @@ export class ServiceManager {
       if (this.configManager.isServiceEnabled('phone')) {
         const phoneConfig = this.configManager.getConfig('phone');
         this.services.phone = new TwilioPhoneService(phoneConfig);
-        console.log('Phone service initialized successfully');
+        serviceLogger.info('Phone service initialized successfully');
       } else {
-        console.log('Phone service is disabled');
+        serviceLogger.info('Phone service is disabled');
       }
 
       // Initialize SMS service
       if (this.configManager.isServiceEnabled('sms')) {
         const smsConfig = this.configManager.getConfig('sms');
         this.services.sms = new TwilioSMSService(smsConfig);
-        console.log('SMS service initialized successfully');
+        serviceLogger.info('SMS service initialized successfully');
       } else {
-        console.log('SMS service is disabled');
+        serviceLogger.info('SMS service is disabled');
       }
 
       // Initialize email service
       if (this.configManager.isServiceEnabled('email')) {
         const emailConfig = this.configManager.getConfig('email');
         this.services.email = new SendGridEmailService(emailConfig);
-        console.log('Email service initialized successfully');
+        serviceLogger.info('Email service initialized successfully');
       } else {
-        console.log('Email service is disabled');
+        serviceLogger.info('Email service is disabled');
       }
 
       // Initialize file storage service
       if (this.configManager.isServiceEnabled('fileStorage')) {
         const fileStorageConfig = this.configManager.getConfig('fileStorage');
         this.services.fileStorage = new AWSS3StorageService(fileStorageConfig);
-        console.log('File storage service initialized successfully');
+        serviceLogger.info('File storage service initialized successfully');
       } else {
-        console.log('File storage service is disabled');
+        serviceLogger.info('File storage service is disabled');
       }
     } catch (error) {
-      console.error('Error initializing services:', error);
+      serviceLogger.error('Error initializing services:', error);
     }
   }
 
@@ -104,7 +105,7 @@ export class ServiceManager {
         const testResult = await this.services.phone.testConnection();
         results.phone = testResult.success;
       } catch (error) {
-        console.error('Phone service test failed:', error);
+        serviceLogger.error('Phone service test failed:', error);
         results.phone = false;
       }
     }
@@ -114,7 +115,7 @@ export class ServiceManager {
         const testResult = await this.services.sms.testConnection();
         results.sms = testResult.success;
       } catch (error) {
-        console.error('SMS service test failed:', error);
+        serviceLogger.error('SMS service test failed:', error);
         results.sms = false;
       }
     }
@@ -124,7 +125,7 @@ export class ServiceManager {
         const testResult = await this.services.email.testConnection();
         results.email = testResult.success;
       } catch (error) {
-        console.error('Email service test failed:', error);
+        serviceLogger.error('Email service test failed:', error);
         results.email = false;
       }
     }
@@ -134,7 +135,7 @@ export class ServiceManager {
         const testResult = await this.services.fileStorage.testConnection();
         results.fileStorage = testResult.success;
       } catch (error) {
-        console.error('File storage service test failed:', error);
+        serviceLogger.error('File storage service test failed:', error);
         results.fileStorage = false;
       }
     }
@@ -179,8 +180,8 @@ export class ServiceManager {
     return status;
   }
 
-  public getServiceMetrics(): Record<string, any> {
-    const metrics: Record<string, any> = {};
+  public getServiceMetrics(): Record<string, unknown> {
+    const metrics: Record<string, unknown> = {};
 
     if (this.services.phone) {
       metrics.phone = this.services.phone.getMetrics();
@@ -229,7 +230,7 @@ export class ServiceManager {
     // Reinitialize services
     this.initializeServices();
 
-    console.log('Services reinitialized successfully');
+    serviceLogger.info('Services reinitialized successfully');
   }
 
   public enableService(serviceName: keyof ServiceRegistry): void {

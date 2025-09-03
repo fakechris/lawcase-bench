@@ -15,13 +15,13 @@ export interface ServiceConfig {
   senderId?: string;
 }
 
-export interface ServiceResponse<T = any> {
+export interface ServiceResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
   metadata?: {
     requestId: string;
@@ -34,7 +34,7 @@ export interface ServiceResponse<T = any> {
 export interface WebhookPayload {
   id: string;
   event: string;
-  data: any;
+  data: unknown;
   timestamp: Date;
   signature?: string;
 }
@@ -50,7 +50,7 @@ export interface RetryConfig {
 export interface CircuitBreakerConfig {
   failureThreshold: number;
   recoveryTimeout: number;
-  expectedException?: any;
+  expectedException?: unknown;
 }
 
 export interface ServiceMetrics {

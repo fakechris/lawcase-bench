@@ -22,8 +22,8 @@ export interface FileStorageServiceInterface {
     fileId: string,
     expiresIn?: number
   ): Promise<PresignedUrl>;
-  setFileMetadata(fileId: string, metadata: Record<string, any>): Promise<void>;
-  getFileMetadata(fileId: string): Promise<Record<string, any>>;
+  setFileMetadata(fileId: string, metadata: Record<string, unknown>): Promise<void>;
+  getFileMetadata(fileId: string): Promise<Record<string, unknown>>;
   searchFiles(query: string, options?: SearchOptions): Promise<FileInfo[]>;
   getStorageStats(): Promise<StorageStats>;
   testConnection(): Promise<ServiceResponse<boolean>>;
@@ -37,14 +37,14 @@ export interface FileUpload {
   content: Buffer | string;
   contentType?: string;
   size?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface UploadOptions {
   path?: string;
   publicAccess?: boolean;
   contentType?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
   encryption?: {
     algorithm: string;
@@ -82,7 +82,7 @@ export interface FileUploadResponse {
   publicUrl?: string;
   checksum?: string;
   uploadedAt: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
   storageClass?: string;
   cost?: number;
@@ -101,7 +101,7 @@ export interface FileInfo {
   createdAt: Date;
   updatedAt: Date;
   lastModified?: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
   storageClass?: string;
   url?: string;
@@ -122,7 +122,7 @@ export interface FileFilter {
   prefix?: string;
   contentType?: string;
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   minSize?: number;
   maxSize?: number;
   createdAfter?: Date;
@@ -140,7 +140,7 @@ export interface FileFilter {
 
 export interface FolderOptions {
   publicAccess?: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
 }
 
@@ -153,7 +153,7 @@ export interface FolderInfo {
   updatedAt: Date;
   itemCount: number;
   totalSize: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   tags?: string[];
 }
 
@@ -190,7 +190,7 @@ export interface SearchOptions {
   fileType?: 'file' | 'folder';
   contentType?: string;
   tags?: string[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   limit?: number;
   offset?: number;
   sortBy?: 'relevance' | 'name' | 'size' | 'createdAt' | 'updatedAt';

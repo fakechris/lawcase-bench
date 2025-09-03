@@ -1,10 +1,14 @@
 import crypto from 'crypto';
 
 import { WebhookPayload } from '../types/services.js';
+import { Logger } from '../utils/logger.js';
+
+const webhookLogger = new Logger({ prefix: 'Webhooks' });
 
 export interface WebhookHandler {
   handle(payload: WebhookPayload): Promise<void>;
   validateSignature(payload: string, signature: string, secret: string): boolean;
+  secret?: string;
 }
 
 export abstract class BaseWebhookHandler implements WebhookHandler {
@@ -31,15 +35,15 @@ export abstract class BaseWebhookHandler implements WebhookHandler {
   }
 
   protected logWebhook(payload: WebhookPayload, action: string): void {
-    console.log(`[${this.serviceName} Webhook] ${action}:`, {
+    webhookLogger.info(`[${this.serviceName} Webhook] ${action}:`, {
       id: payload.id,
       event: payload.event,
       timestamp: payload.timestamp,
     });
   }
 
-  protected handleError(error: any, payload: WebhookPayload): void {
-    console.error(`[${this.serviceName} Webhook] Error processing webhook:`, {
+  protected handleError(error: Error & { message?: string }, payload: WebhookPayload): void {
+    webhookLogger.error(`[${this.serviceName} Webhook] Error processing webhook:`, {
       error: error.message,
       webhookId: payload.id,
       event: payload.event,
@@ -86,57 +90,57 @@ export class TwilioWebhookHandler extends BaseWebhookHandler {
           await this.handleSMSFailed(payload);
           break;
         default:
-          console.warn(`[${this.serviceName} Webhook] Unknown event type: ${payload.event}`);
+          webhookLogger.warn(`[${this.serviceName} Webhook] Unknown event type: ${payload.event}`);
       }
     } catch (error) {
-      this.handleError(error, payload);
+      this.handleError(error as Error & { message?: string }, payload);
       throw error;
     }
   }
 
   private async handleCallInitiated(payload: WebhookPayload): Promise<void> {
     // Handle call initiated event
-    console.log('Call initiated:', payload.data);
+    webhookLogger.info('Call initiated:', payload.data);
   }
 
   private async handleCallRinging(payload: WebhookPayload): Promise<void> {
     // Handle call ringing event
-    console.log('Call ringing:', payload.data);
+    webhookLogger.info('Call ringing:', payload.data);
   }
 
   private async handleCallAnswered(payload: WebhookPayload): Promise<void> {
     // Handle call answered event
-    console.log('Call answered:', payload.data);
+    webhookLogger.info('Call answered:', payload.data);
   }
 
   private async handleCallCompleted(payload: WebhookPayload): Promise<void> {
     // Handle call completed event
-    console.log('Call completed:', payload.data);
+    webhookLogger.info('Call completed:', payload.data);
   }
 
   private async handleCallFailed(payload: WebhookPayload): Promise<void> {
     // Handle call failed event
-    console.log('Call failed:', payload.data);
+    webhookLogger.info('Call failed:', payload.data);
   }
 
   private async handleRecordingCompleted(payload: WebhookPayload): Promise<void> {
     // Handle recording completed event
-    console.log('Recording completed:', payload.data);
+    webhookLogger.info('Recording completed:', payload.data);
   }
 
   private async handleSMSSent(payload: WebhookPayload): Promise<void> {
     // Handle SMS sent event
-    console.log('SMS sent:', payload.data);
+    webhookLogger.info('SMS sent:', payload.data);
   }
 
   private async handleSMSDelivered(payload: WebhookPayload): Promise<void> {
     // Handle SMS delivered event
-    console.log('SMS delivered:', payload.data);
+    webhookLogger.info('SMS delivered:', payload.data);
   }
 
   private async handleSMSFailed(payload: WebhookPayload): Promise<void> {
     // Handle SMS failed event
-    console.log('SMS failed:', payload.data);
+    webhookLogger.info('SMS failed:', payload.data);
   }
 }
 
@@ -162,9 +166,6 @@ export class SendGridWebhookHandler extends BaseWebhookHandler {
         case 'bounce':
           await this.handleBounce(payload);
           break;
-        case 'dropped':
-          await this.handleDropped(payload);
-          break;
         case 'spamreport':
           await this.handleSpamReport(payload);
           break;
@@ -178,63 +179,58 @@ export class SendGridWebhookHandler extends BaseWebhookHandler {
           await this.handleGroupResubscribe(payload);
           break;
         default:
-          console.warn(`[${this.serviceName} Webhook] Unknown event type: ${payload.event}`);
+          webhookLogger.warn(`[${this.serviceName} Webhook] Unknown event type: ${payload.event}`);
       }
     } catch (error) {
-      this.handleError(error, payload);
+      this.handleError(error as Error & { message?: string }, payload);
       throw error;
     }
   }
 
   private async handleDelivered(payload: WebhookPayload): Promise<void> {
     // Handle email delivered event
-    console.log('Email delivered:', payload.data);
+    webhookLogger.info('Email delivered:', payload.data);
   }
 
   private async handleOpen(payload: WebhookPayload): Promise<void> {
     // Handle email open event
-    console.log('Email opened:', payload.data);
+    webhookLogger.info('Email opened:', payload.data);
   }
 
   private async handleClick(payload: WebhookPayload): Promise<void> {
     // Handle email click event
-    console.log('Email clicked:', payload.data);
+    webhookLogger.info('Email clicked:', payload.data);
   }
 
   private async handleBounce(payload: WebhookPayload): Promise<void> {
     // Handle email bounce event
-    console.log('Email bounced:', payload.data);
-  }
-
-  private async handleDropped(payload: WebhookPayload): Promise<void> {
-    // Handle email dropped event
-    console.log('Email dropped:', payload.data);
+    webhookLogger.info('Email bounced:', payload.data);
   }
 
   private async handleSpamReport(payload: WebhookPayload): Promise<void> {
     // Handle spam report event
-    console.log('Spam reported:', payload.data);
+    webhookLogger.info('Spam reported:', payload.data);
   }
 
   private async handleUnsubscribe(payload: WebhookPayload): Promise<void> {
     // Handle unsubscribe event
-    console.log('Unsubscribe:', payload.data);
+    webhookLogger.info('Unsubscribed:', payload.data);
   }
 
   private async handleGroupUnsubscribe(payload: WebhookPayload): Promise<void> {
     // Handle group unsubscribe event
-    console.log('Group unsubscribe:', payload.data);
+    webhookLogger.info('Group unsubscribed:', payload.data);
   }
 
   private async handleGroupResubscribe(payload: WebhookPayload): Promise<void> {
     // Handle group resubscribe event
-    console.log('Group resubscribe:', payload.data);
+    webhookLogger.info('Group resubscribed:', payload.data);
   }
 }
 
-export class S3WebhookHandler extends BaseWebhookHandler {
+export class AWSWebhookHandler extends BaseWebhookHandler {
   constructor(secret: string) {
-    super('AWS S3', secret);
+    super('AWS', secret);
   }
 
   async handle(payload: WebhookPayload): Promise<void> {
@@ -245,6 +241,9 @@ export class S3WebhookHandler extends BaseWebhookHandler {
         case 's3:ObjectCreated:Put':
           await this.handleObjectCreated(payload);
           break;
+        case 's3:ObjectRemoved:Delete':
+          await this.handleObjectDeleted(payload);
+          break;
         case 's3:ObjectCreated:Post':
           await this.handleObjectCreated(payload);
           break;
@@ -254,83 +253,43 @@ export class S3WebhookHandler extends BaseWebhookHandler {
         case 's3:ObjectCreated:CompleteMultipartUpload':
           await this.handleObjectCreated(payload);
           break;
-        case 's3:ObjectRemoved:Delete':
-          await this.handleObjectRemoved(payload);
-          break;
-        case 's3:ObjectRemoved:DeleteMarkerCreated':
-          await this.handleObjectRemoved(payload);
-          break;
-        case 's3:ObjectAccessed:Get':
-          await this.handleObjectAccessed(payload);
-          break;
-        case 's3:ReducedRedundancyLostObject':
-          await this.handleReducedRedundancyLostObject(payload);
-          break;
         default:
-          console.warn(`[${this.serviceName} Webhook] Unknown event type: ${payload.event}`);
+          webhookLogger.warn(`[${this.serviceName} Webhook] Unknown event type: ${payload.event}`);
       }
     } catch (error) {
-      this.handleError(error, payload);
+      this.handleError(error as Error & { message?: string }, payload);
       throw error;
     }
   }
 
   private async handleObjectCreated(payload: WebhookPayload): Promise<void> {
     // Handle S3 object created event
-    console.log('S3 object created:', payload.data);
+    webhookLogger.info('S3 object created:', payload.data);
   }
 
-  private async handleObjectRemoved(payload: WebhookPayload): Promise<void> {
-    // Handle S3 object removed event
-    console.log('S3 object removed:', payload.data);
-  }
-
-  private async handleObjectAccessed(payload: WebhookPayload): Promise<void> {
-    // Handle S3 object accessed event
-    console.log('S3 object accessed:', payload.data);
-  }
-
-  private async handleReducedRedundancyLostObject(payload: WebhookPayload): Promise<void> {
-    // Handle reduced redundancy lost object event
-    console.log('Reduced redundancy lost object:', payload.data);
+  private async handleObjectDeleted(payload: WebhookPayload): Promise<void> {
+    // Handle S3 object deleted event
+    webhookLogger.info('S3 object deleted:', payload.data);
   }
 }
 
 export class WebhookManager {
   private handlers: Map<string, WebhookHandler> = new Map();
 
-  constructor() {
-    // Initialize handlers with secrets from environment variables
-    const twilioSecret = process.env.TWILIO_WEBHOOK_SECRET || '';
-    const sendGridSecret = process.env.SENDGRID_WEBHOOK_SECRET || '';
-    const s3Secret = process.env.S3_WEBHOOK_SECRET || '';
-
-    if (twilioSecret) {
-      this.handlers.set('twilio', new TwilioWebhookHandler(twilioSecret));
-    }
-
-    if (sendGridSecret) {
-      this.handlers.set('sendgrid', new SendGridWebhookHandler(sendGridSecret));
-    }
-
-    if (s3Secret) {
-      this.handlers.set('s3', new S3WebhookHandler(s3Secret));
-    }
-  }
-
-  async handleWebhook(service: string, payload: WebhookPayload, signature?: string): Promise<void> {
+  async processWebhook(
+    service: string,
+    payload: WebhookPayload,
+    signature?: string
+  ): Promise<void> {
     const handler = this.handlers.get(service);
+
     if (!handler) {
-      throw new Error(`No webhook handler found for service: ${service}`);
+      throw new Error(`No webhook handler registered for service: ${service}`);
     }
 
     // Validate signature if provided
-    if (signature && handler.validateSignature) {
-      const isValid = handler.validateSignature(
-        JSON.stringify(payload),
-        signature,
-        (handler as any).secret
-      );
+    if (signature && handler.secret) {
+      const isValid = handler.validateSignature(JSON.stringify(payload), signature, handler.secret);
 
       if (!isValid) {
         throw new Error(`Invalid webhook signature for service: ${service}`);

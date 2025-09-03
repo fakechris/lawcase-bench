@@ -16,8 +16,87 @@ import { ServiceConfig, ServiceResponse } from '../types/services.js';
 
 import { BaseService } from './base.service.js';
 
+// Twilio API response interfaces
+interface TwilioCall {
+  sid: string;
+  parentCallSid?: string;
+  dateCreated: Date;
+  dateUpdated: Date;
+  accountSid: string;
+  to: string;
+  from: string;
+  phoneNumberSid?: string;
+  status: string;
+  startTime?: Date;
+  endTime?: Date;
+  duration?: string;
+  price?: string;
+  priceUnit?: string;
+  direction: string;
+  answeredBy?: string;
+  annotation?: unknown;
+  callerName?: string;
+  forwardingFrom?: string;
+  groupSid?: string;
+  queueTime?: string;
+  trunkSid?: string;
+}
+
+interface TwilioRecording {
+  sid: string;
+  accountSid: string;
+  callSid: string;
+  dateCreated: Date;
+  dateUpdated: Date;
+  duration: string;
+  status: string;
+  url: string;
+  size?: number;
+  contentType?: string;
+}
+
+interface TwilioConference {
+  sid: string;
+  friendlyName: string;
+  accountSid: string;
+  dateCreated: Date;
+  dateUpdated: Date;
+  status: string;
+  recordingUrl?: string;
+}
+
+interface TwilioParticipant {
+  sid: string;
+  callSid: string;
+  conferenceSid: string;
+  dateCreated: Date;
+  dateUpdated: Date;
+  to: string;
+  from: string;
+  status: string;
+  muted: boolean;
+  hold: boolean;
+  startConferenceOnEnter: boolean;
+  endConferenceOnExit: boolean;
+}
+
+interface TwilioApi {
+  v2010: {
+    accounts: (accountSid: string) => {
+      calls: {
+        create: (params: unknown) => Promise<TwilioCall>;
+        list: (filter: unknown) => Promise<TwilioCall[]>;
+        get: (sid: string) => { remove: () => Promise<void> };
+      };
+      conferences: {
+        create: (params: unknown) => Promise<TwilioConference>;
+      };
+    };
+  };
+}
+
 export class TwilioPhoneService extends BaseService implements PhoneServiceInterface {
-  private client: twilio.Twilio;
+  private client: twilio.Twilio & { api: TwilioApi };
   private configManager: ServiceConfigManager;
 
   constructor(config?: ServiceConfig) {
@@ -50,7 +129,7 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
     return this.executeWithRetryOrThrow(async () => {
       this.validateConfig();
 
-      const callParams: any = {
+      const callParams: Record<string, unknown> = {
         to,
         from,
         url: options?.statusCallbackUrl || 'https://demo.twilio.com/docs/voice.xml',
@@ -71,7 +150,7 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
 
       return {
         callId: call.sid,
-        status: call.status as any,
+        status: call.status as CallResponse['status'],
         from: call.from,
         to: call.to,
         startTime: new Date(call.dateCreated),
@@ -94,25 +173,25 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
 
       return {
         callId: call.sid,
-        status: call.status as any,
+        status: call.status as CallResponse['status'],
         from: call.from,
         to: call.to,
         startTime: new Date(call.dateCreated),
         endTime: call.endTime ? new Date(call.endTime) : undefined,
         duration: parseInt(call.duration?.toString() || '0', 10),
-        direction: call.direction as any,
+        direction: call.direction as CallInfo['direction'],
         answerTime: call.startTime ? new Date(call.startTime) : undefined,
         hangupCause: call.status,
         price: call.price ? parseFloat(call.price) : undefined,
         currency: call.priceUnit,
-        recordingUrl: recordings.length > 0 ? (recordings[0] as any).url : undefined,
+        recordingUrl: recordings.length > 0 ? (recordings[0] as TwilioRecording).url : undefined,
       };
     }, 'getCallInfo');
   }
 
   async listCalls(filter?: CallFilter): Promise<CallInfo[]> {
     return this.executeWithRetryOrThrow(async () => {
-      const params: any = {
+      const params: Record<string, unknown> = {
         limit: filter?.limit || 50,
         pageSize: Math.min(filter?.limit || 50, 1000),
       };
@@ -130,18 +209,19 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
           const recordings = await this.client.recordings.list({ callSid: call.sid });
           return {
             callId: call.sid,
-            status: call.status as any,
+            status: call.status as CallResponse['status'],
             from: call.from,
             to: call.to,
             startTime: new Date(call.dateCreated),
             endTime: call.endTime ? new Date(call.endTime) : undefined,
             duration: parseInt(call.duration?.toString() || '0', 10),
-            direction: call.direction as any,
+            direction: call.direction as CallInfo['direction'],
             answerTime: call.startTime ? new Date(call.startTime) : undefined,
             hangupCause: call.status,
             price: call.price ? parseFloat(call.price) : undefined,
             currency: call.priceUnit,
-            recordingUrl: recordings.length > 0 ? (recordings[0] as any).url : undefined,
+            recordingUrl:
+              recordings.length > 0 ? (recordings[0] as TwilioRecording).url : undefined,
           };
         })
       );
@@ -158,11 +238,11 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
       return {
         recordingId: recording.sid,
         callId: recording.callSid,
-        status: recording.status as any,
+        status: recording.status as RecordingResponse['status'],
         startTime: new Date(recording.dateCreated),
         duration: parseInt(recording.duration?.toString() || '0', 10),
-        url: (recording as any).url,
-        format: (recording as any).contentType?.split('/')[1] || 'mp3',
+        url: (recording as TwilioRecording).url,
+        format: (recording as TwilioRecording).contentType?.split('/')[1] || 'mp3',
       };
     }, 'startRecording');
   }
@@ -180,13 +260,13 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
       return recordings.map((recording) => ({
         recordingId: recording.sid,
         callId: recording.callSid,
-        status: recording.status as any,
+        status: recording.status as RecordingResponse['status'],
         startTime: new Date(recording.dateCreated),
         endTime: recording.dateUpdated ? new Date(recording.dateUpdated) : undefined,
         duration: parseInt(recording.duration?.toString() || '0', 10),
-        url: (recording as any).url,
-        fileSize: (recording as any).size,
-        format: (recording as any).contentType?.split('/')[1] || 'mp3',
+        url: (recording as TwilioRecording).url,
+        fileSize: (recording as TwilioRecording).size,
+        format: (recording as TwilioRecording).contentType?.split('/')[1] || 'mp3',
         price: recording.price ? parseFloat(recording.price) : undefined,
         currency: recording.priceUnit,
       }));
@@ -198,7 +278,7 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
     options?: ConferenceOptions
   ): Promise<ConferenceResponse> {
     return this.executeWithRetryOrThrow(async () => {
-      const conferenceParams: any = {
+      const conferenceParams: Record<string, unknown> = {
         friendlyName: options?.name || 'Conference Call',
         record: options?.record || false,
         muted: options?.muted || false,
@@ -210,12 +290,12 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
         statusCallbackMethod: 'POST',
       };
 
-      const conference = await (this.client.api as any).v2010
+      const conference = await (this.client.api as TwilioApi).v2010
         .accounts(this.config.apiKey)
         .conferences.create(conferenceParams);
 
       const participantPromises = participants.map((participant) =>
-        (this.client.api as any).v2010
+        (this.client.api as TwilioApi).v2010
           .accounts(this.config.apiKey)
           .conferences(conference.sid)
           .participants.create({
@@ -231,18 +311,22 @@ export class TwilioPhoneService extends BaseService implements PhoneServiceInter
       return {
         conferenceId: conference.sid,
         name: conference.friendlyName,
-        status: conference.status as any,
+        status: conference.status as ConferenceResponse['status'],
         participants: createdParticipants.map((p) => ({
-          callId: (p as any).callSid,
-          participantId: (p as any).sid,
-          phoneNumber: (p as any).to,
-          status: (p as any).status as any,
-          muted: (p as any).muted,
-          hold: (p as any).hold,
-          startTime: new Date((p as any).dateCreated),
+          callId: (p as TwilioParticipant).callSid,
+          participantId: (p as TwilioParticipant).sid,
+          phoneNumber: (p as TwilioParticipant).to,
+          status: (p as TwilioParticipant).status as
+            | 'queued'
+            | 'ringing'
+            | 'in-progress'
+            | 'completed',
+          muted: (p as TwilioParticipant).muted,
+          hold: (p as TwilioParticipant).hold,
+          startTime: new Date((p as TwilioParticipant).dateCreated),
         })),
-        startTime: new Date((conference as any).dateCreated),
-        recordingUrl: (conference as any).recordingUrl,
+        startTime: new Date((conference as TwilioConference).dateCreated),
+        recordingUrl: (conference as TwilioConference).recordingUrl,
       };
     }, 'makeConferenceCall');
   }

@@ -286,7 +286,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
-      const params: any = {
+      const params: Record<string, unknown> = {
         Bucket: this.bucketName,
         MaxKeys: filter?.limit || 1000,
       };
@@ -486,7 +486,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
       const prefix = path.endsWith('/') ? path : `${path}/`;
       const delimiter = options?.delimiter || '/';
 
-      const params: any = {
+      const params: Record<string, unknown> = {
         Bucket: this.bucketName,
         Prefix: prefix,
         Delimiter: delimiter,
@@ -658,7 +658,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     throw new Error(response.error?.message || 'Failed to generate presigned URL');
   }
 
-  async setFileMetadata(fileId: string, metadata: Record<string, any>): Promise<void> {
+  async setFileMetadata(fileId: string, metadata: Record<string, string>): Promise<void> {
     const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
@@ -681,7 +681,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     throw new Error(response.error?.message || 'Failed to set file metadata');
   }
 
-  async getFileMetadata(fileId: string): Promise<Record<string, any>> {
+  async getFileMetadata(fileId: string): Promise<Record<string, string>> {
     const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 

@@ -10,7 +10,7 @@ export interface EmailServiceInterface {
   sendTemplate(
     to: string | string[],
     templateId: string,
-    templateData: Record<string, any>,
+    templateData: Record<string, unknown>,
     options?: EmailOptions
   ): Promise<EmailResponse>;
   sendBulkEmail(
@@ -62,7 +62,7 @@ export interface EmailOptions {
   category?: string;
   campaignId?: string;
   sendAt?: Date;
-  customArgs?: Record<string, any>;
+  customArgs?: Record<string, unknown>;
 }
 
 export interface EmailAttachment {
@@ -76,15 +76,15 @@ export interface EmailAttachment {
 export interface EmailRecipient {
   email: string;
   name?: string;
-  substitutions?: Record<string, any>;
-  customArgs?: Record<string, any>;
+  substitutions?: Record<string, unknown>;
+  customArgs?: Record<string, unknown>;
 }
 
 export interface BulkEmailOptions extends EmailOptions {
   batchSize?: number;
   delayBetweenBatches?: number;
   throttleRate?: number; // emails per second
-  customArgs?: Record<string, any>;
+  customArgs?: Record<string, unknown>;
 }
 
 export interface EmailResponse {
@@ -211,7 +211,7 @@ export interface TemplateVariable {
   name: string;
   type: 'text' | 'number' | 'boolean' | 'date' | 'array' | 'object';
   required: boolean;
-  defaultValue?: any;
+  defaultValue?: unknown;
   description?: string;
 }
 
