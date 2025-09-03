@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-import { AuthService } from '../services/auth.service.js';
+import { AuthService } from './auth.service.js';
 
 // Mock the modules
 vi.mock('../models/auth.js', () => ({
@@ -45,11 +45,29 @@ vi.mock('../utils/jwt.js', () => ({
   },
 }));
 
+vi.mock('../utils/twoFactor.js', () => ({
+  TwoFactorUtils: {
+    generateSecret: vi.fn(),
+    generateBackupCodes: vi.fn(),
+    generateQRCodeUrl: vi.fn(),
+    verifyToken: vi.fn(),
+    setupTwoFactor: vi.fn(),
+    validateBackupCode: vi.fn(),
+    removeUsedBackupCode: vi.fn(),
+  },
+}));
+
 vi.mock('nodemailer', () => ({
   default: {
     createTransport: vi.fn(() => ({
       sendMail: vi.fn(),
     })),
+  },
+}));
+
+vi.mock('../utils/logger.js', () => ({
+  authLogger: {
+    error: vi.fn(),
   },
 }));
 
