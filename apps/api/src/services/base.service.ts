@@ -184,28 +184,38 @@ export abstract class BaseService {
   }
 
   protected getErrorCode(error: unknown): string {
-    if (error.code) return error.code;
-    if (error.response?.status) {
-      const status = error.response.status;
-      if (status >= 500) return 'SERVER_ERROR';
-      if (status === 429) return 'RATE_LIMIT';
-      if (status >= 400) return 'CLIENT_ERROR';
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any;
+      if (err.code) return err.code;
+      if (err.response?.status) {
+        const status = err.response.status;
+        if (status >= 500) return 'SERVER_ERROR';
+        if (status === 429) return 'RATE_LIMIT';
+        if (status >= 400) return 'CLIENT_ERROR';
+      }
+      if (err.message?.includes('timeout')) return 'TIMEOUT';
+      if (err.message?.includes('network')) return 'NETWORK_ERROR';
     }
-    if (error.message?.includes('timeout')) return 'TIMEOUT';
-    if (error.message?.includes('network')) return 'NETWORK_ERROR';
     return 'UNKNOWN_ERROR';
   }
 
   protected getErrorMessage(error: unknown): string {
-    return error.message || 'An unknown error occurred';
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      return (error as any).message || 'An unknown error occurred';
+    }
+    return 'An unknown error occurred';
   }
 
   protected getErrorDetails(error: unknown): unknown {
-    return {
-      stack: error.stack,
-      response: error.response?.data,
-      config: error.config,
-    };
+    if (typeof error === 'object' && error !== null) {
+      const err = error as any;
+      return {
+        stack: err.stack,
+        response: err.response?.data,
+        config: err.config,
+      };
+    }
+    return {};
   }
 
   protected logError(operation: string, error: unknown, attempt: number): void {

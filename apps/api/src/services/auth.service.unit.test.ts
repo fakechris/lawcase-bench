@@ -43,10 +43,6 @@ vi.mock('../utils/jwt.js', () => ({
   TokenUtils: {
     generateSecureToken: vi.fn(),
   },
-  TwoFactorUtils: {
-    setupTwoFactor: vi.fn(),
-    verifyToken: vi.fn(),
-  },
 }));
 
 vi.mock('nodemailer', () => ({
@@ -59,7 +55,7 @@ vi.mock('nodemailer', () => ({
 
 // Import mocked modules after mocking
 import { UserModel, RoleModel, RefreshTokenModel, TokenBlacklistModel } from '../models/auth.js';
-import { JwtUtils, PasswordUtils, TokenUtils, TwoFactorUtils } from '../utils/jwt.js';
+import { JwtUtils, PasswordUtils, TokenUtils } from '../utils/jwt.js';
 
 describe('AuthService', () => {
   beforeEach(() => {
@@ -98,13 +94,13 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
 
-      UserModel.findByEmail.mockResolvedValue(null);
-      UserModel.findByUsername.mockResolvedValue(null);
-      RoleModel.findByName.mockResolvedValue(mockRole);
-      PasswordUtils.hashPassword.mockResolvedValue('hashed-password');
-      UserModel.create.mockResolvedValue(mockUser);
-      TokenUtils.generateSecureToken.mockReturnValue('refresh-token');
-      JwtUtils.generateAccessToken.mockReturnValue('access-token');
+      (UserModel.findByEmail as any).mockResolvedValue(null);
+      (UserModel.findByUsername as any).mockResolvedValue(null);
+      (RoleModel.findByName as any).mockResolvedValue(mockRole);
+      (PasswordUtils.hashPassword as any).mockResolvedValue('hashed-password');
+      (UserModel.create as any).mockResolvedValue(mockUser);
+      (TokenUtils.generateSecureToken as any).mockReturnValue('refresh-token');
+      (JwtUtils.generateAccessToken as any).mockReturnValue('access-token');
 
       // Act
       const result = await AuthService.register(registerData);
@@ -137,7 +133,7 @@ describe('AuthService', () => {
         lastName: 'User',
       };
 
-      UserModel.findByEmail.mockResolvedValue({ id: 'existing-user' });
+      (UserModel.findByEmail as any).mockResolvedValue({ id: 'existing-user' });
 
       // Act & Assert
       await expect(AuthService.register(registerData)).rejects.toThrow(
@@ -159,6 +155,8 @@ describe('AuthService', () => {
         email: loginData.email,
         username: 'testuser',
         password: 'hashed-password',
+        firstName: 'Test',
+        lastName: 'User',
         isActive: true,
         isVerified: true,
         twoFactorEnabled: false,
@@ -167,10 +165,10 @@ describe('AuthService', () => {
         updatedAt: new Date(),
       };
 
-      UserModel.findByEmail.mockResolvedValue(mockUser);
-      PasswordUtils.comparePassword.mockResolvedValue(true);
-      JwtUtils.generateAccessToken.mockReturnValue('access-token');
-      TokenUtils.generateSecureToken.mockReturnValue('refresh-token');
+      (UserModel.findByEmail as any).mockResolvedValue(mockUser);
+      (PasswordUtils.comparePassword as any).mockResolvedValue(true);
+      (JwtUtils.generateAccessToken as any).mockReturnValue('access-token');
+      (TokenUtils.generateSecureToken as any).mockReturnValue('refresh-token');
 
       // Act
       const result = await AuthService.login(loginData);
@@ -198,12 +196,12 @@ describe('AuthService', () => {
         password: 'wrong-password',
       };
 
-      UserModel.findByEmail.mockResolvedValue({
+      (UserModel.findByEmail as any).mockResolvedValue({
         id: 'user-id',
         password: 'hashed-password',
         isActive: true,
       });
-      PasswordUtils.comparePassword.mockResolvedValue(false);
+      (PasswordUtils.comparePassword as any).mockResolvedValue(false);
 
       // Act & Assert
       await expect(AuthService.login(loginData)).rejects.toThrow('Invalid email or password');

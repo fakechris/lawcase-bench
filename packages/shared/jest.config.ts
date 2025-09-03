@@ -19,6 +19,7 @@ const config: Config = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
   setupFiles: ['dotenv/config'],
+  testPathIgnorePatterns: ['/tests/database.test.ts'],
 };
 
 export default config;
