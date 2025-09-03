@@ -95,7 +95,16 @@ export class AuthService {
     await this.sendVerificationEmail(user);
 
     // Return user without sensitive data
-    const { password: __password, twoFactorSecret: __twoFactorSecret, ...userResponse } = user;
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isActive: user.isActive,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
 
     return {
       user: userResponse,
@@ -162,7 +171,16 @@ export class AuthService {
     await UserModel.updateLastLogin(user.id);
 
     // Return user without sensitive data
-    const { password: __password, twoFactorSecret: __twoFactorSecret, ...userResponse } = user;
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isActive: user.isActive,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
 
     return {
       user: userResponse,
@@ -214,7 +232,16 @@ export class AuthService {
     });
 
     // Return user without sensitive data
-    const { password: __password, twoFactorSecret: __twoFactorSecret, ...userResponse } = user;
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      isActive: user.isActive,
+      isVerified: user.isVerified,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
 
     return {
       user: userResponse,

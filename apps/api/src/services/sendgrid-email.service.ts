@@ -355,7 +355,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     }, 'validateEmail');
   }
 
-  async getEmailStats(filter?: StatsFilter): Promise<EmailStats> {
+  async getEmailStats(_filter?: StatsFilter): Promise<EmailStats> {
     return this.executeWithRetry(async () => {
       // Note: SendGrid doesn't provide a direct way to get email statistics
       // This would typically require using the SendGrid Statistics API
@@ -422,7 +422,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
     }, 'deleteTemplate');
   }
 
-  async listTemplates(filter?: TemplateFilter): Promise<EmailTemplate[]> {
+  async listTemplates(_filter?: TemplateFilter): Promise<EmailTemplate[]> {
     return this.executeWithRetry(async () => {
       // Note: SendGrid template management requires additional API calls
       // This is a simplified implementation

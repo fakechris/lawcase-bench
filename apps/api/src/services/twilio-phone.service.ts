@@ -11,7 +11,6 @@ import {
   RecordingInfo,
   ConferenceOptions,
   ConferenceResponse,
-  Participant,
 } from '../types/phone.js';
 import { ServiceConfig, ServiceResponse } from '../types/services.js';
 
