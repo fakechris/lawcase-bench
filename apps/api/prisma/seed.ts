@@ -177,8 +177,8 @@ async function main() {
       if (permission) {
         await prisma.rolePermission.create({
           data: {
-            roleId: role.id,
-            permissionId: permission.id,
+            role_id: role.id,
+            permission_id: permission.id,
           },
         });
       }

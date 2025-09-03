@@ -27,9 +27,9 @@ export async function createTestData() {
   // 创建权限
   const permissions = await prisma.permission.createMany({
     data: [
-      { name: 'test.permission', description: '测试权限' },
-      { name: 'users.read', description: '查看用户' },
-      { name: 'customers.read', description: '查看客户' },
+      { name: 'test.permission', description: '测试权限', resource: 'test', action: 'permission' },
+      { name: 'users.read', description: '查看用户', resource: 'users', action: 'read' },
+      { name: 'customers.read', description: '查看客户', resource: 'customers', action: 'read' },
     ],
   });
 
