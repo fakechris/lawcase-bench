@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import {
-  UserRole,
+  User_Role,
   UserStatus,
   LeadStatus,
   LeadSource,
@@ -209,7 +209,7 @@ async function main() {
   console.log('用户创建完成');
 
   // 为用户分配角色
-  await prisma.userRole.upsert({
+  await prisma.user_Role.upsert({
     where: {
       user_id_role_id: {
         user_id: adminUser.id,
@@ -223,7 +223,7 @@ async function main() {
     },
   });
 
-  await prisma.userRole.upsert({
+  await prisma.user_Role.upsert({
     where: {
       user_id_role_id: {
         user_id: lawyerUser.id,
@@ -237,7 +237,7 @@ async function main() {
     },
   });
 
-  await prisma.userRole.upsert({
+  await prisma.user_Role.upsert({
     where: {
       user_id_role_id: {
         user_id: assistantUser.id,

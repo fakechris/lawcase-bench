@@ -1,6 +1,6 @@
 import {
   PrismaClient,
-  UserRole,
+  User_Role,
   UserStatus,
   CustomerType,
   CustomerStatus,
@@ -748,7 +748,10 @@ describe('Database Models', () => {
         prisma.user.create({
           data: {
             email: 'nulltest@example.com',
-            // 缺少 username, password_hash, first_name, last_name
+            password_hash: 'hash123',
+            first_name: 'Test',
+            last_name: 'User',
+            // 缺少 username
           },
         })
       ).rejects.toThrow();

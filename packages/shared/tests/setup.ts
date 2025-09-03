@@ -19,4 +19,4 @@ afterAll(async () => {
 jest.setTimeout(30000);
 
 // 全局变量，用于测试中访问
-global.prisma = prisma;
+(global as any).prisma = prisma;
