@@ -305,6 +305,10 @@ export class ServiceManager {
       errors,
     };
   }
+
+  public async checkAllServicesHealth(): Promise<Record<string, boolean>> {
+    return this.testAllServices();
+  }
 }
 
 export const serviceManager = ServiceManager.getInstance();

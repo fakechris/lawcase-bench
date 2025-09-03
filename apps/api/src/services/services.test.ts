@@ -94,8 +94,8 @@ describe('Service Integration Tests', () => {
     process.env = { ...originalEnv, ...mockEnv };
 
     // Reset singletons
-    (ServiceConfigManager as typeof ServiceConfigManager & { instance: any }).instance = null;
-    (ServiceManager as typeof ServiceManager & { instance: any }).instance = null;
+    (ServiceConfigManager as any)._instance = null;
+    (ServiceManager as any)._instance = null;
 
     configManager = ServiceConfigManager.getInstance();
     serviceManager = ServiceManager.getInstance();
@@ -195,10 +195,10 @@ describe('Service Integration Tests', () => {
       expect(metrics.fileStorage).toBeDefined();
 
       // Check that metrics have the expected structure
-      expect(metrics.phone.totalRequests).toBe(0);
-      expect(metrics.phone.successfulRequests).toBe(0);
-      expect(metrics.phone.failedRequests).toBe(0);
-      expect(metrics.phone.errorRate).toBe(0);
+      expect((metrics.phone as any).totalRequests).toBe(0);
+      expect((metrics.phone as any).successfulRequests).toBe(0);
+      expect((metrics.phone as any).failedRequests).toBe(0);
+      expect((metrics.phone as any).errorRate).toBe(0);
     });
 
     it('should handle service health checks', async () => {
@@ -244,8 +244,8 @@ describe('Service Integration Tests', () => {
       process.env.PHONE_SERVICE_API_KEY = '';
 
       // Reinitialize service manager
-      (ServiceConfigManager as typeof ServiceConfigManager & { instance: any }).instance = null;
-      (ServiceManager as typeof ServiceManager & { instance: any }).instance = null;
+      (ServiceConfigManager as any)._instance = null;
+      (ServiceManager as any)._instance = null;
 
       const newConfigManager = ServiceConfigManager.getInstance();
       const newServiceManager = ServiceManager.getInstance();
@@ -288,6 +288,7 @@ describe('Service Integration Tests', () => {
   describe('Service Resilience', () => {
     it('should track service metrics correctly', async () => {
       const phoneService = serviceManager.getPhoneService();
+      if (!phoneService) throw new Error('Phone service not available');
 
       // Get initial metrics
       const initialMetrics = phoneService.getMetrics();

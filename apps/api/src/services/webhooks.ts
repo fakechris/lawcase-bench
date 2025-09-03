@@ -276,11 +276,7 @@ export class AWSWebhookHandler extends BaseWebhookHandler {
 export class WebhookManager {
   private handlers: Map<string, WebhookHandler> = new Map();
 
-  async processWebhook(
-    service: string,
-    payload: WebhookPayload,
-    signature?: string
-  ): Promise<void> {
+  async handleWebhook(service: string, payload: WebhookPayload, signature?: string): Promise<void> {
     const handler = this.handlers.get(service);
 
     if (!handler) {
@@ -313,3 +309,6 @@ export class WebhookManager {
 }
 
 export const webhookManager = new WebhookManager();
+
+// Alias for backward compatibility
+webhookManager.processWebhook = webhookManager.handleWebhook;

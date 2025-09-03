@@ -286,7 +286,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
     const response = await this.executeWithRetry(async () => {
       this.validateConfig();
 
-      const params: Record<string, unknown> = {
+      const params = {
         Bucket: this.bucketName,
         MaxKeys: filter?.limit || 1000,
       };
@@ -451,7 +451,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
         Key: folderPath,
         Body: '',
         ContentType: 'application/x-directory',
-        Metadata: options?.metadata,
+        Metadata: options?.metadata as Record<string, string> | undefined,
         Tagging: options?.tags ? options.tags.map((tag) => `${tag}=true`).join('&') : undefined,
         ACL: options?.publicAccess ? 'public-read' : 'private',
       });
@@ -486,7 +486,7 @@ export class AWSS3StorageService extends BaseService implements FileStorageServi
       const prefix = path.endsWith('/') ? path : `${path}/`;
       const delimiter = options?.delimiter || '/';
 
-      const params: Record<string, unknown> = {
+      const params = {
         Bucket: this.bucketName,
         Prefix: prefix,
         Delimiter: delimiter,

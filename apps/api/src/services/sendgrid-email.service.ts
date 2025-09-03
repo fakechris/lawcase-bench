@@ -68,7 +68,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
       const recipients = Array.isArray(to) ? to : [to];
       const from = options?.from || 'noreply@lawcasebench.com';
 
-      const mailData: Record<string, unknown> = {
+      const mailData: any = {
         to: recipients,
         from,
         subject,
@@ -78,7 +78,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         cc: options?.cc,
         bcc: options?.bcc,
         attachments: this.processAttachments(options?.attachments),
-        headers: options?.headers,
+        headers: options?.headers as Record<string, string> | undefined,
         customArgs: {
           category: options?.category,
           campaign_id: options?.campaignId,
@@ -142,7 +142,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
       const recipients = Array.isArray(to) ? to : [to];
       const from = options?.from || 'noreply@lawcasebench.com';
 
-      const mailData: Record<string, unknown> = {
+      const mailData: any = {
         to: recipients,
         from,
         templateId,
@@ -151,7 +151,7 @@ export class SendGridEmailService extends BaseService implements EmailServiceInt
         cc: options?.cc,
         bcc: options?.bcc,
         attachments: this.processAttachments(options?.attachments),
-        headers: options?.headers,
+        headers: options?.headers as Record<string, string> | undefined,
         customArgs: {
           category: options?.category,
           campaign_id: options?.campaignId,
